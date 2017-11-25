@@ -1,0 +1,251 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>Calvin Chi</title>
+	<link rel="stylesheet" href = "assets/css/style.css">
+	<link rel="stylesheet" href = "assets/css/ammap.css">
+	<link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+	<link rel="icon" href="assets/img/cal.jpg">
+	<script type="text/javascript" src="assets/js/ammap.js"></script>
+	<script type="text/javascript" src="assets/js/worldLow.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+	<script src = "assets/js/script.js"></script>
+	<script>
+		var map;
+		// svg path for target icon
+		var targetSVG = "M9,0C4.029,0,0,4.029,0,9s4.029,9,9,9s9-4.029,9-9S13.971,0,9,0z M9,15.93 c-3.83,0-6.93-3.1-6.93-6.93S5.17,2.07,9,2.07s6.93,3.1,6.93,6.93S12.83,15.93,9,15.93 M12.5,9c0,1.933-1.567,3.5-3.5,3.5S5.5,10.933,5.5,9S7.067,5.5,9,5.5 S12.5,7.067,12.5,9z";
+		AmCharts.ready(function() {
+			map = new AmCharts.AmMap();
+		    map.imagesSettings = {
+		        rollOverColor: "#CC0000",
+		        rollOverScale: 3,
+                    selectedScale: 3,
+		        selectedColor: "#CC0000"
+		    };
+			map.areasSettings = {
+				outlineThickness:0.1
+			};
+			var dataProvider = {
+            	mapVar: AmCharts.maps.worldLow,
+            	images: [
+            		{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"Taichung", latitude:24.147736, longitude:120.673648},
+          			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"kaohsiung", latitude:22.627278, longitude:120.301435},
+          			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"Taipei", latitude:25.0330, longitude:121.5654},
+          			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"Okinawa", latitude:26.501301, longitude:127.945404},
+          			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"Seoul", latitude:37.566535, longitude:126.977969},
+          			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"Hong Kong", latitude:22.396428, longitude:114.109497},
+          			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"San Francisco", latitude:37.774929, longitude:-122.419416},
+          			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"San Diego", latitude:32.715738, longitude:-117.161084},
+          			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"Los Angeles", latitude:34.052234, longitude:-118.243685},
+          			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"Seattle", latitude:47.606209, longitude:-122.332071},
+          			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"Vancouver", latitude:49.282729, longitude:-123.120738},
+          			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"Pittsburgh", latitude:40.440625, longitude:-79.995886},
+          			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"New York", latitude:40.712775, longitude:-74.005973},
+          			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"Orlando", latitude:28.538335, longitude:-81.379236},
+          			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"Cleveland", latitude:41.499320, longitude:-81.694361},
+          			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"Columbus", latitude:39.961176, longitude:-82.998794},
+          			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"Iowa City", latitude:41.661128, longitude:-91.530168}
+          			]
+            };
+	    	map.dataProvider = dataProvider;
+	    	map.showImagesInList = true;
+	    	map.write("mapdiv");
+		});
+    </script>
+</head>
+<body>
+	<section id = "about-section" class = "white-section">
+		<div id = "cover"></div>
+		<div id="about">
+			<div id = "profile">
+				<div id = "profile-photo">
+					<img src="assets/img/profile.jpg" height="250px" style="border-radius:50%; margin:auto; display: block;">
+				</div>
+				<div id = "profile-caption">
+					<h1>Calvin Chi</h1>
+					<h3><i>calvin.chi at berkeley dot edu</i></h3>
+					<br>
+					<br>
+					<div class = "profile-button-panel">
+						<a class = "profile-button" href = "placeholder.html" target = "_blank">Google Scholar</a>
+						<a class = "profile-button" href = "placeholder.html" target = "_blank">Github</a>
+						<a class = "profile-button" href = "placeholder.html" target = "_blank">Resume</a>
+					</div>
+				</div>
+			</div>
+			<div id = "about-text">
+				<p> I am currently a Ph.D. student in the <a target="_blank" style="color:blue" href="http://ccb.berkeley.edu/">Computational Biology Graduate Program</a> at UC Berkeley, advised by Lisa Barcellos. I am interested in the application of computational and statistical approaches to problems in human health and genetics, as well as to data science problems we encounter today. Some subjects that interest me include:</p>
+				<div class="list">
+					<ul>
+						<li>Machine Learning</li>
+						<li>Algorithms</li>
+						<li>Computer Vision</li>
+					</ul>
+				</div>
+				<div class="list">
+					<ul>
+						<li>Natural Language Processing</li>
+						<li>Precision Medicine</li>
+						<li>Statistics</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</section>
+	<section id = "biography-section" class = "gray-section">
+		<div class="navbar">
+			<a class="nav-item" href="#about-section">About</a>
+			<a class="nav-item" href="#biography-section">Biography</a>
+			<a class="nav-item" href="#education-section">Education</a>
+			<a class="nav-item" href="#industry-section">Industry</a>
+			<a class="nav-item" href="#research-section">Research</a>
+			<a class="nav-item" href="#projects-section">Projects</a>
+		</div>
+		<div id="biography">
+			<div class="section-title">Biography</div>
+			<div id="biography-text">
+				I was born in Iowa and raised in Taichung, Taiwan. Growing up in Taiwan, I attended an international school and had fun learning about perspectives from many parts of the world. After graduation, I went to Ohio to receive my undergraduate education in biochemistry, with a career of medicine in mind. However, after realizing that I enjoyed the computational and mathematical sciences much more than I did clinical experiences, I eventually decided to pursue Computational Biology and came to California for my graduate education. My favorite indoor activities include reading, building miniature models, gaming, having meaningful conversations, and watching and analyzing film. My favorite outdoor activities include running, basketball, racquet sports, hiking, and traveling. The map on the right indicates cities where I have been to. I would like to populate the map with a few more spots.
+			</div>
+			<div id="mapdiv"></div>
+		</div>
+	</section>
+	<section id = "education-section" class = "white-section">
+		<div class = "section-title">Education</div>
+		<div class="organization">
+			<div class="organization-photo">
+				<img src="assets/img/CWRU.jpg" height="250px" style="border-radius:50%; display: block; margin: auto;">
+			</div>
+			 <div class="organization-caption">  
+				<br>
+				<h2>Case Western Reserve University</h2>
+				BS, Biochemistry, <i>summa cum laude</i>
+				<br>
+				2011 - 2015
+			</div>
+		</div>
+		<div class="organization">
+			<div class="organization-photo">
+				<img src="assets/img/UCB.jpg" height="250px" style="border-radius:50%; display: block; margin: auto;">
+			</div>
+			<div class="organization-caption"> 
+				<br>
+				<h2>University of California, Berkeley</h2>
+				PhD, Computational Biology
+				<br>
+				2015 - present
+			</div> 
+		</div>
+	</section>
+	<section id = "industry-section" class = "gray-section">
+		<div class = "section-title">Industry</div>
+		<div class="organization">
+			<div class="organization-photo">
+				<img src="assets/img/omni.jpg" height="250px" style="border-radius:50%; display: block; margin: auto;">
+			</div>
+			 <div class="organization-caption">  
+				Omni Labs
+				<br>
+				Data Scientist Intern
+				<br>
+				June 2017 - August 2017
+			</div>
+		</div>
+	</section>
+	<section id = "research-section" class = "white-section">
+		<div class = "section-title">Research</div>
+		<div class = "work">
+			<div class = "work-photo">
+				<img src="assets/img/research1.png" height="225px">
+			</div>
+			<div class = "work-text">
+				<h2>Admixture Mapping Reveals Diverse Genetic Ancestry of HLA and non-HLA MS-Associated Alleles in Admixed Populations</h2>
+				<p><b>Calvin Chi</b>, Xiaorong Shao, Brooke Rhead, Evangelina Gonzalez, Jessica B. Smith, Anny H. Xiang, Jennifer Graves, Amy Waldman, Timothy Lotze, Teri Schreiner, Bianca Weinstock-Guttman, Gregory Aaen, Jan-Mendelt Tillema, Jayne Ness, <i>et al.</i></p>
+				<p>American Journal of Human Genetics (AJHG) 2017</p>
+				<br>
+				<br>
+				<div class = "button-panel">
+					<div type = "button" class = "button-abstract">Abstract
+						<span class = "abstract-bubble">
+							Multiple sclerosis (MS) is a complex neurodegenerative disease with highest prevalence among populations of northern European ancestry. The disparity of MS prevalence across the globe leads to questions regarding whether MS genetic risk factors could be traced to a predominant ancestry. We estimate local ancestry of MS-associated alleles in the largest assembled admixed population to-date, with individuals from African American, Asian American, and Hispanic populations. Our results reveal a complex picture of the genetic ancestry of MS-associated alleles—the majority of human antigen leukocyte (HLA) alleles, including the prominent HLA-DRB1*15:01 risk allele, exhibit cosmopolitan origins. We also identify MS-associated HLA alleles that are likely ancestry-specific. Alleles from different ancestries could confer different risks—our case study of HLA-DRB1*15:01 shows evidence that the European allele confers twice the risk of the African allele. Out of the 200 established non-HLA MS alleles, we only replicate association of two alleles rs405343 and rs6670198 in Asian Americans, and we find that most non-HLA MS alleles are admixed. Lastly, a genome-wide search of association between European ancestry and MS reveals a top signal from 2Mb to 3Mb on chromosome 8 in Hispanics, with cases being more European than controls at the locus. Overall, we find that admixed individuals with MS have both ancestry-specific and cosmopolitan MS-associated alleles. It is plausible that the higher prevalence of MS in European populations can be explained by a combination of greater risk exerted by alleles from European ancestry and higher frequency of protective alleles in non-European populations.
+							<div class = "middle-dark-tooltip"></div>
+							<div class = "middle-light-tooltip"></div>
+						</span>
+					</div>
+				
+					<a class = "button" href = "placeholder.html" target = "_blank">Poster</a>
+					<a class="button" href = "placeholder.html" target = "_blank">PDF</a>
+				</div>
+			</div>
+		</div>
+	</section>
+	<section id = "projects-section" class = "gray-section">
+		<div class = "section-title">Projects</div>
+		<div class = "work">
+			<div class = "work-photo">
+				<img src="assets/img/project1.png" height="210px" vertical-align=middle>
+			</div>
+			<div class = "work-text">
+				<h2>Expectation-Maximization Algorithm: application for coin bias inference</h2>
+				<div class = "tag-panel">
+				<br>
+					<div class = "tag">Personal Project</div>
+					<div class = "tag">Machine Learning</div>
+					<div class = "tag">2016</div>
+				</div>
+				<br>
+  					<li>Introduction to EM algorithm</li>
+  					<li>Derivation of EM update equations for inferring coin biases</li>
+  					<li>Python implementation of EM algorithm for inferring coin biases</li>
+  				<br>
+				<div class = "button-panel">
+					<a href="http://nbviewer.jupyter.org/github/CalvinTChi/Machine-Learning-Algorithms/blob/master/EM_Algorithm.ipynb" class = "button" target="_blank">Notebook</a>
+				</div>
+			</div>
+			<div class = "work-photo">
+				<img src="assets/img/project2.png" height="225px" vertical-align=middle>
+			</div>
+			<div class = "work-text">
+				<h2>Neural Networks for MNIST Digit Recognition</h2>
+				<div class = "tag-panel">
+				<br>
+					<div class = "tag">Personal Project</div>
+					<div class = "tag">Machine Learning</div>
+					<div class = "tag">2015</div>
+				</div>
+				<br>
+  					<li>Introduction to neural nets</li>
+  					<li>Derivation of stochastic gradient descent update rules</li>
+  					<li>Python implementation of 3 layer neural network achieving 96% validation accuracy in 6 minutes</li>
+  				<br>
+				<div class = "button-panel">
+					<a href="http://nbviewer.jupyter.org/github/CalvinTChi/Machine-Learning-Algorithms/blob/master/Neural_Networks.ipynb" class = "button" target="_blank">Notebook</a>
+				</div>
+			</div>
+			<div class = "work-photo">
+				<img src="assets/img/project3.png" height="225px" vertical-align=middle>
+			</div>
+			<div class = "work-text">
+				<h2>Collaborative Filtering for Joke Recommendation</h2>
+				<div class = "tag-panel">
+				<br>
+					<div class = "tag">Personal Project</div>
+					<div class = "tag">Machine Learning</div>
+					<div class = "tag">2015</div>
+				</div>
+				<br>
+  					<li>Joke recommender system for 24,983 users and 100 jokes based on user-item ratings</li>
+  					<li>Derivation of alternating least squares update equations to solve for joke and user latent factors</li>
+  					<li>Python implementation achieves 73% successful user, joke recommendation on validation dataset</li>
+  				<br>
+				<div class = "button-panel">
+					<a href="http://nbviewer.jupyter.org/github/CalvinTChi/Machine-Learning-Algorithms/blob/master/Collaborative_Filtering.ipynb" class = "button" target="_blank">Notebook</a>
+				</div>
+			</div>
+			
+
+		</div>
+
+	</section>
+</body>
+
+</html>
