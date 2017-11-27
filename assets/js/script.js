@@ -3,8 +3,10 @@ $(document).ready(function() {
 	$(".nav-item").click(function(e) {
 		var position;
 		e.preventDefault();
+		// jQuery Function Number 1
 		var a_href = $(this).attr('href');
 		if (a_href == "#about-section" || a_href == "#biography-section") {
+			// jQuery Function Number 2
 			position = $(a_href).offset().top;
 		} else {
 			position = $(a_href).offset().top - 60;
@@ -26,10 +28,13 @@ $(document).ready(function() {
 	current_navitem.css("background-color", "#ddd");
 
 	function stickyNav() {
+		// jQuery Function Number 3
 		var scrollTop = $(window).scrollTop();
 		if (scrollTop >= stickyNavTop) { 
+			// jQuery Function Number 4
 			$('.navbar').addClass('sticky');
 		} else {
+			// jQuery Function Number 5
 			$('.navbar').removeClass('sticky'); 
 		}
 	}
@@ -67,6 +72,7 @@ $(document).ready(function() {
 			navitem = $('a[href="#projects-section"]');
 		}
 		if (current_navitem != navitem) {
+			// jQuery Function Number 6
 			current_navitem.css("background-color", "#EEEEEE");
 			navitem.css("background-color", "#ddd");
 			current_navitem = navitem;
