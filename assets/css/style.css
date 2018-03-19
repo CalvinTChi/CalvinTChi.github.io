@@ -132,6 +132,12 @@ body {
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: center;
+	flex-direction: row; 
+}
+
+#quote-text {
+	line-height: 1.5;
+	justify-content: left;
 }
 
 .list {
@@ -312,7 +318,8 @@ body {
 }
 
 .button {
-	width: 75px;
+	display: flex;
+	/*width: 75px;*/
 	height: 30px;
 	background-color: #5DADE2;
 	box-shadow: 0px 1px 5px gray;
@@ -322,6 +329,7 @@ body {
 	text-align: center;
 	line-height: 30px;  
 	margin: 0px 10px 0px 0px;
+	padding: 0px 10px 0px 10px;
 	text-decoration: none;
 }
 
@@ -473,6 +481,16 @@ body {
 	line-height: 30px;  
 	margin: 0px 10px 0px 0px;
 	padding: 0px 10px 0px 10px;
+}
+
+#end-section {
+	width: 100%;
+	box-sizing: border-box;
+	line-height: 1.5;
+	margin: 25px 25px 25px 25px;
+	/*display: flex;/*
+	/*flex-wrap: wrap;*/
+	/*justify-content: center;*/
 }
 
 

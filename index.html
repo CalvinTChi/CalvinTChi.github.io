@@ -44,7 +44,9 @@
           			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"Orlando", latitude:28.538335, longitude:-81.379236},
           			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"Cleveland", latitude:41.499320, longitude:-81.694361},
           			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"Columbus", latitude:39.961176, longitude:-82.998794},
-          			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"Iowa City", latitude:41.661128, longitude:-91.530168}
+          			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"Iowa City", latitude:41.661128, longitude:-91.530168},
+          			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"Osaka", latitude:34.6937, longitude:135.5022},
+          			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"Kyoto", latitude:35.0116, longitude:135.7680}
           			]
             };
 	    	map.dataProvider = dataProvider;
@@ -74,7 +76,7 @@
 				</div>
 			</div>
 			<div id = "about-text">
-				<p> I am currently a Ph.D. student in the <a target="_blank" style="color:#3399ff" href="http://ccb.berkeley.edu/">Computational Biology Graduate Program</a> at UC Berkeley, advised by Lisa Barcellos. I am interested in the application of computational and statistical approaches to problems in human health and genetics, as well as to data science problems we encounter today. Some subjects that interest me include:</p>
+				<p> I am currently a Ph.D. student in the <a target="_blank" style="color:#3399ff" href="http://ccb.berkeley.edu/">Computational Biology Graduate Program</a> at UC Berkeley, advised by Lisa Barcellos. I am interested in the application and development of computational and statistical approaches to problems in human health and genetics, and more broadly to the field of data science. Some subjects that interest me include:</p>
 				<div class="list">
 					<ul>
 						<li>Machine Learning</li>
@@ -89,6 +91,7 @@
 						<li>Statistics</li>
 					</ul>
 				</div>
+				<p style="width:100%"><br><i>"If you can't explain it simply, you don't understand it well enough."</i> - Albert Einstein</p>
 			</div>
 		</div>
 	</section>
@@ -104,7 +107,7 @@
 		<div id="biography">
 			<div class="section-title">Biography</div>
 			<div id="biography-text">
-				I was born in Iowa and raised in Taichung, Taiwan. Growing up in Taiwan, I attended an international school and had fun learning about perspectives from many parts of the world. After graduation, I went to Ohio to receive my undergraduate education in biochemistry, with a career of medicine in mind. However, after realizing that I enjoyed the computational and mathematical sciences much more than I did clinical experiences, I eventually decided to pursue Computational Biology and came to California for my graduate education. My favorite indoor activities include reading, building miniature models, gaming, having meaningful conversations, and watching and analyzing film. My favorite outdoor activities include running, basketball, racquet sports, hiking, and traveling. The map on the right indicates cities where I have been to. I would like to populate the map with a few more spots.
+				I was born in Iowa City and grew up in Taichung, Taiwan. There, I attended a culturally diverse high school called Morrison Academy. I received my bachelors of science in biochemistry in Ohio with the goal of attending medical school. However, upon realizing my true passion in the computational and mathematical sciences, I declined medical school in Pittsburgh and started my PhD in Computational Biology in California. My favorite indoor activities include reading, building physical models, conversing with people, and analyzing film. My favorite outdoor activities include running, pool, basketball, racquet sports, hiking, and traveling. The map on the right indicates cities where I have been to.
 			</div>
 			<div id="mapdiv"></div>
 		</div>
@@ -171,9 +174,8 @@
 							<div class = "middle-light-tooltip"></div>
 						</span>
 					</div>
-				
 					<a class = "button" href = "placeholder.html" target = "_blank">Poster</a>
-					<a class="button" href = "placeholder.html" target = "_blank">PDF</a>
+					<a class="button" href = "placeholder.html" target = "_blank">Paper</a>
 				</div>
 			</div>
 		</div>
@@ -182,7 +184,28 @@
 		<div class = "section-title">Projects</div>
 		<div class = "work">
 			<div class = "work-photo">
-				<img src="assets/img/project1.png" height="210px" vertical-align=middle>
+				<img src="assets/img/project5.png" height="210px" vertical-align=middle>
+			</div>
+			<div class = "work-text">
+				<h2>Analyzing the Effect of Salary on Employee Attrition</h2>
+				<div class = "tag-panel">
+				<br>
+					<div class = "tag">Class Project</div>
+					<div class = "tag">Causal Inference</div>
+					<div class = "tag">2017</div>
+				</div>
+				<br>
+  					<li>Causal inference of effect of salary on employee attrition for simulated <a target="_blank" style="color:#3399ff" href="https://www.kaggle.com/analystanand/employee-attrition">Kaggle</a> dataset</li>
+  					<li>Variable importance ranking of features for employee attrition</li>
+  					<li>Causal inference with DAGs, ensemble learning, and TMLE</li>
+  				<br>
+				<div class = "button-panel">
+					<a href="https://drive.google.com/open?id=1zFkW8h4VJf-AhZZhz10Fa3k4LFBo_1Ua" class = "button" target="_blank">Report</a>
+					<a href="https://drive.google.com/open?id=1zNgWYosHBGCsZS_9ZG1raYX_oA97Uruf" class = "button" target="_blank">Presentation</a>
+				</div>
+			</div>
+			<div class = "work-photo">
+				<img src="assets/img/project4.png" height="210px" vertical-align=middle>
 			</div>
 			<div class = "work-text">
 				<h2>Expectation-Maximization Algorithm: application for coin bias inference</h2>
@@ -199,6 +222,27 @@
   				<br>
 				<div class = "button-panel">
 					<a href="https://nbviewer.jupyter.org/github/CalvinTChi/Machine-Learning-Algorithms/blob/master/EM_Algorithm.ipynb" class = "button" target="_blank">Notebook</a>
+				</div>
+			</div>
+			<div class = "work-photo">
+				<img src="assets/img/project3.png" height="210px" vertical-align=middle>
+			</div>
+			<div class = "work-text">
+				<h2>Bearmaps</h2>
+				<div class = "tag-panel">
+				<br>
+					<div class = "tag">Class Project</div>
+					<div class = "tag">Data Structures</div>
+					<div class = "tag">2016</div>
+				</div>
+				<br>
+  					<li>Mapping application for Berkeley, CA; implemented in Java</li>
+  					<li>Rastering with quad tree</li>
+  					<li>Routing via A* algorithm; location search autocompletion with trie</li>
+  				<br>
+				<div class = "button-panel">
+					<a href="http://calvin-bearmap.herokuapp.com/map.html" class = "button" target="_blank">Application</a>
+					<a href="http://datastructur.es/sp16/materials/proj/proj3/proj3.html" class = "button" target="_blank">Specifications</a>
 				</div>
 			</div>
 			<div class = "work-photo">
@@ -222,7 +266,7 @@
 				</div>
 			</div>
 			<div class = "work-photo">
-				<img src="assets/img/project3.png" height="225px" vertical-align=middle>
+				<img src="assets/img/project1.png" height="225px" vertical-align=middle>
 			</div>
 			<div class = "work-text">
 				<h2>Collaborative Filtering for Joke Recommendation</h2>
@@ -241,10 +285,17 @@
 					<a href="https://nbviewer.jupyter.org/github/CalvinTChi/Machine-Learning-Algorithms/blob/master/Collaborative_Filtering.ipynb" class = "button" target="_blank">Notebook</a>
 				</div>
 			</div>
-			
-
 		</div>
-
+	</section>
+	<section id = "end-section" class = "white-section">
+		<p>
+			<a href="https://www.easycounter.com/">
+				<img src="https://www.easycounter.com/counter.php?calvinchi" border="0" alt="Website Hit Counters">
+			</a>
+			<i>unique visitors since Mar. 2018</i>
+			<br>
+			<i>Last update: Mar. 2018</i>
+		</p>
 	</section>
 </body>
 
