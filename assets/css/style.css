@@ -265,6 +265,7 @@ body {
 	box-sizing: border-box;
 	display: flex;
 	flex-wrap: wrap;
+	width: 100%;
 }
 
 #industry-section {
@@ -273,6 +274,7 @@ body {
 	box-sizing: border-box;
 	display: flex;
 	flex-wrap: wrap;
+	width: 100%;
 }
 
 #research-section {
@@ -307,7 +309,7 @@ body {
 	font-size: 18px;
 	color: #646464;
 	line-height: 1.5;
-	width: 600px;
+	width: 700px;
 	margin: 25px 25px 25px 25px;
 }
 
