@@ -73,6 +73,8 @@ p a:hover {
 
 body {
 	font-family: 'Open Sans', sans-serif;
+	/* to prevent horizontal scroll bar */
+	overflow-x:hidden;
 }
 
 .white-section {
@@ -503,12 +505,5 @@ body {
 	/*flex-wrap: wrap;*/
 	/*justify-content: center;*/
 }
-
-
-
-
-
-
-
 
 
