@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # update master branc
-mkdir -p /tmp/workspaceh
+mkdir -p /tmp/workspace
+cp -r * /tmp/workspace/
 git add -A .
 git commit -m "update slides"
 
