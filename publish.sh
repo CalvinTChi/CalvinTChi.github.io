@@ -8,6 +8,6 @@ git commit -m "update slides"
 git checkout -B gh-pages
 
 # push update
-git push origin master gh-pages
+git push origin --all
 git checkout master
 
