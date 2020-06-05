@@ -12,4 +12,3 @@ git commit -m "update slides"
 
 # push update
 git checkout master
-
