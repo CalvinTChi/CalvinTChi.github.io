@@ -12,4 +12,3 @@ git commit -m "update slides"
 # push update
 git push origin master gh-pages
 git checkout master
-
