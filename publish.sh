@@ -3,13 +3,13 @@
 # update master branch
 git add -A .
 git commit -m "update slides"
+git push origin master
 
 # update gh-pagesi branch
-git checkout -B gh-pages
+git checkout gh-pages
 git add -A .
 git commit -m "update slides"
 
 # push update
-git push origin master gh-pages
 git checkout master
 
