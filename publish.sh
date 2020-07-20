@@ -6,7 +6,7 @@ cp -r * /tmp/workspace/
 git add -A .
 git commit -m "update slides"
 
-# update gh-pagesi branch
+# update gh-pages branch
 git checkout gh-pages
 cp -r /tmp/workspace/* .
 git add -A .
