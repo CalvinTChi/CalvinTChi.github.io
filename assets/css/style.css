@@ -19,6 +19,15 @@ nav ul li {
 
 nav ul li a {
     display: block;
+    text-decoration: none;
+}
+
+li a {
+    text-decoration: none;
+}
+
+li a:hover {
+    text-decoration: underline;
 }
 
 li {
@@ -477,7 +486,6 @@ body {
 	flex-wrap: wrap;
 	justify-content: center;
   	align-items:center;
-  	
 }
 
 .tag-panel {
@@ -497,14 +505,61 @@ body {
 	padding: 0px 10px 0px 10px;
 }
 
+#resources-section {
+	width: 100%;
+	box-sizing: border-box;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: left;
+}
+
+#resources-intro {
+	position: relative;
+	margin-left: auto;
+	margin-right: auto;
+	padding: 0px 100px 25px 100px;
+	width: 100%;
+	z-index: 2;
+	box-sizing: border-box;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	font-size: 18px;
+	color: #646464;
+	flex-grow: 1;
+	line-height: 1.5;
+}
+
+.work-text {
+	font-size: 18px;
+	color: #646464;
+	line-height: 1.5;
+	width: 700px;
+	margin: 25px 25px 25px 25px;
+}
+
+.resources-panel {
+	font-size: 18px;
+	color: #646464;
+	line-height: 1.5;
+	margin: 0px 100px 0px 100px;
+	width: 100%;
+}
+
+#resources-section {
+	width: 100%;
+	box-sizing: border-box;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: left;
+}
+
 #end-section {
 	width: 100%;
 	box-sizing: border-box;
-	line-height: 1.5;
-	margin: 25px 25px 25px 25px;
-	/*display: flex;/*
-	/*flex-wrap: wrap;*/
-	/*justify-content: center;*/
+	padding: 25px 25px 25px 25px;
+	display: flex;
+	flex-wrap: wrap;
 }
 
 
