@@ -24,6 +24,7 @@ $(document).ready(function() {
 	var industry = $('#industry-section').offset().top;
 	var research = $('#research-section').offset().top;
 	var projects = $('#projects-section').offset().top;
+	var resources = $('#resources-section').offset().top;
 	var current_navitem = $('a[href="#about-section"]');
 	current_navitem.css("background-color", "#ddd");
 
@@ -50,6 +51,7 @@ $(document).ready(function() {
 			industry = $('#industry-section').offset().top;
 			research = $('#research-section').offset().top;
 			projects = $('#projects-section').offset().top;
+			resources = $('#resources-section').offset().top;
             stickyNav();
         }, 50)
      })
@@ -68,8 +70,10 @@ $(document).ready(function() {
 			navitem = $('a[href="#industry-section"]');
 		} else if ((scrollTop + 60) >= research && (scrollTop + 60) < projects) {
 			navitem = $('a[href="#research-section"]');
-		} else {
+		} else if ((scrollTop + 60) >= projects && (scrollTop + 60) < resources) {
 			navitem = $('a[href="#projects-section"]');
+		} else {
+			navitem = $('a[href="#resources-section"]');
 		}
 		if (current_navitem != navitem) {
 			// jQuery Function Number 6
