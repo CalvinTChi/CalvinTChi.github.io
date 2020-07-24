@@ -13116,70 +13116,74 @@ div#notebook {
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="EM-Algorithm"><center>EM Algorithm</center><a class="anchor-link" href="#EM-Algorithm">&#182;</a></h1><h3 id="Calvin-Chi"><center>Calvin Chi</center><a class="anchor-link" href="#Calvin-Chi">&#182;</a></h3>
+<h1 id="Expectation-Maximization-Algorithm"><center>Expectation-Maximization Algorithm</center><a class="anchor-link" href="#Expectation-Maximization-Algorithm">&#182;</a></h1><h3 id="Calvin-Chi"><center>Calvin Chi</center><a class="anchor-link" href="#Calvin-Chi">&#182;</a></h3>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="1.-Algorithm">1. Algorithm<a class="anchor-link" href="#1.-Algorithm">&#182;</a></h1>
+<h1 id="1.-Motivation">1. Motivation<a class="anchor-link" href="#1.-Motivation">&#182;</a></h1>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>The expectation-maximization algorithm, or commonly called the EM algorithm, is an iterative approach for finding the maximum likelihood estimate for an unknown parameter $\theta$ of a statistical model, where the model is dependent on another unknown and unobserved latent variable.</p>
-<p>Suppose we have a training set of $\{x^{(1)},...,x^{(m)}\}$ independent samples, and we wish to use this dataset to estimate $\theta$ in a model dependent on $z$ and $\theta$. In this case, $z$ is our unobserved latent variable. If $z$ is known, finidng the maximum likelihood estimate for $\theta$ may be straightforward. However, if $z$ is not observed, the task is not as straightforward and the EM algorithm is often used in such situations.</p>
-<p>Normally, finding the maximum likelihood estimate involves finding $\theta$ that maximizes the log-likelihood of the data. The $\theta$ maximizing the likelihood and log-likelihood are the same because the $\log(x)$ function is a monotonically increasing function. Let $x$ represent the training set $\{x^{(1)},...,x^{(m)}\}$, $l(\theta)$ represent the log-likelihood of $\theta$, $f(\theta)$ represent the likelihood of $\theta$, and $p(x^{(i)};\theta)$ represent the probability of observing $x^{(i)}$ under the model parameterized by $\theta$, then:</p>
-$$f(\theta) = \prod_{i=1}^{m}p(x^{(i)};\theta)$$$$\log(f(\theta)) = l(\theta) = \sum_{i=1}^{m}\log\:p(x^{(i)};\theta)$$<p>If however, the model includes a latent variable $z$ that can take on $u$ values with a probability distribution $Q$, then the log-likelihood expression should be further broken down to reflect that:</p>
+<p>The standard maximum likelihood estimation (MLE) problem solves for</p>
+$$\theta^{*} = \arg \max_{\theta}\ell(\theta),$$<p>the parameter that maximizes the log-likelihood of observed data $\ell(\theta)$, given a statistical model. However, in incomplete data scenarios with unobserved latent variable $Z$, simultaneously solving for $z, \theta$ to maximize the log-likelihood $\ell(\theta, z)$ can be impossible. Conversely, if $z$ were observed, the estimation problem would be easily solvable.</p>
+<p>The expectation-maximization (EM) algorithm is a method to solve for a local maximum likelihood estimate of $\theta$ numerically in incomplete data scenarios, alternating maximization between the two sets of unknowns, keeping the other set fixed. This idea is also known as coordinate ascent. When $z$ is a discrete random variable and the conditional probability of the observed data $p(x | z; \theta)$ and $p(z | \theta)$ are specified under the statistical model, the EM algorithm can be applied to get an estimate for $\theta$.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="2.-Algorithm">2. Algorithm<a class="anchor-link" href="#2.-Algorithm">&#182;</a></h1><p>The following presentation is largely based on the notes written by Andrew Ng [1]. Given a dataset of $\{x^{(1)},...,x^{(m)}\}$ of $m$ independent samples, the log-likelihood is given by</p>
+$$\ell(\theta) = \sum_{i = 1}^{m}\log p(x^{(i)}; \theta) = \sum_{i = 1}^{m}\log \sum_{z}p(x^{(i)}, z^{(i)}; \theta),$$<p>where $Z$ is an unknown discrete random variable ($z$'s are outcome values). Now for any distribution $z^{(i)} \sim Q_{i}$ (i.e. $Q_{i}(z^{(i)})$), we can further rewrite $\ell(\theta)$</p>
 $$
 \begin{align*}
-l(\theta) &amp;= \sum_{i=1}^{m}\log\sum_{j=1}^{u}p(x^{(i)}|\:z^{(j)};\theta)\:Q_{i}(z^{(j)})\\
-&amp;=\sum_{i=1}^{m}\log\sum_{j=1}^{u}\frac{p(z^{(j)}|\:x^{(i)};\theta)p(x^{(i)})}{Q_{i}(z^{(j)})}\:Q_{i}(z^{(j)})\:\text{, by Bayes Rule}\\
-&amp;=\sum_{i=1}^{m}\log\sum_{j=1}^{u}\frac{p(z^{(j)}, x^{(i)};\theta)}{Q_{i}(z^{(j)})}\:Q_{i}(z^{(j)})\\
-&amp;\ge \sum_{i=1}^{m}\sum_{j=1}^{u}Q_{i}(z^{(j)})\:\log\frac{p(z^{(j)}, x^{(i)};\theta)}{Q_{i}(z^{(j)})}\:\text{, by Jensen's inequality}\\
+\ell(\theta) &amp;= \sum_{i = 1}^{m}\log \sum_{z^{(i)}}p(x^{(i)}, z^{(i)}; \theta)\\
+&amp;= \sum_{i=1}^{m}\log\sum_{z^{(i)}}Q_{i}(z^{(i)})\frac{p(x^{(i)}, z^{(i)};\theta)}{Q_{i}(z^{(i)})}\\
+&amp;\geq \sum_{i=1}^{m}\sum_{z^{(i)}}Q_{i}(z^{(i)})\log\frac{p(x^{(i)}, z^{(i)};\theta)}{Q_{i}(z^{(i)})}.
 \end{align*}
-$$<p>Let us first state Jensen's inequality - Jensen's inequality states that given a convex function $f$ and a random variable $X$:</p>
-$$E[f(X)] \ge f(E[X])$$<p>Jensen's inequality can easily be converted to another statement about concave functions $g$. A convex function can be converted to a concave function by multiplying by negative one, or $g = -f$. Since math dictates that multiplying by negative one reverses the direction of inequality:</p>
-$$E[g(X)] \le g(E[X])$$<p>for concave functions. With Jensen's inequality defined, let us use it to understand the inequality in the log-likelihood expression. Since $Q_{i}(z^{(j)})$ means the probability of $z^{(j)}$ for sample $x^{(i)}$, $Q$ is a probability distribution. Let $g = \log(x)$ be our concave function. We can then hold the view:</p>
-$$\log\sum_{j=1}^{u}\frac{p(z^{(j)}, x^{(i)};\theta)}{Q_{i}(z^{(j)})}\:Q_{i}(z^{(j)}) = g\Big(E\Big[\frac{p(z^{(j)}, x^{(i)};\theta)}{Q_{i}(z^{(j)})}\Big]\Big)$$<p>and also:</p>
-$$\sum_{j=1}^{u}Q_{i}(z^{(j)})\:\log\frac{p(z^{(j)}, x^{(i)};\theta)}{Q_{i}(z^{(j)})} = E\Big[g(\frac{p(z^{(j)}, x^{(i)};\theta)}{Q_{i}(z^{(j)})})\Big]$$<p>Thus by Jensen's inequality extended to concave functions, the last inequality expression for the log-likelihood expression holds. Which $Q_{i}(z^{(j)})$ shall we choose? It turns out that in order to guarantee convergence of the EM algorithm, we must choose $Q_{i}(z^{(j)})$ such that the equality portion of the inequality in the log-likelihood expression must be invoked. In Jensen's inequality, equality is invoked when $X$ is a constant (easily shown since $E[X] = X$). Similarly, invoking equality in our log-likelihood expression means:</p>
-$$\frac{p(z^{(j)}, x^{(i)};\theta)}{Q_{i}(z^{(j)})} = c$$<p>Where $c$ is a constant. To accomplish this, $Q_{i}(z^{(j)}) \propto p(z^{(j)}, x^{(i)};\theta)$ must be true. In order for this proportionality to be true while having $Q_{i}(z)$ remain as a probability distribution, the following must be true:</p>
+$$<p>The inequality above is due to Jensen's inequality applied to concave functions. Jensen's inequality states that for a convex function $f$ and random variable $X$, the following inequality $\mathbb{E}[f(X)] \geq f(\mathbb{E}[X])$ is true. One way to easily recall the direction of inequality is using the variance formula $Var(X) = \mathbb{E}[X^{2}] - \mathbb{E}[X]^{2} \geq 0 \iff \mathbb{E}[X^{2}] \geq \mathbb{E}[X]^{2}$, where $f(x) = x^{2}$ is a convex function.</p>
+<p>Now the expectation and maximization steps can be derived. The expectation step considers current $\theta$ value fixed and sets $Q_{i}(z^{(i)})$ so that the inequality above becomes equality. Start by noticing that</p>
+$$\log\sum_{z^{(i)}}\frac{p(z^{(i)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})}Q_{i}(z^{(i)}) = g\Big(\mathbb{E}\Big[\frac{p(z^{(j)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})}\Big]\Big)$$<p>and</p>
+$$\sum_{z^{(i)}}Q_{i}(z^{(i)})\log\frac{p(z^{(i)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})} = 
+\mathbb{E}\Big[g\left(\frac{p(z^{(i)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})}\right)\Big],$$<p>which are summation terms to the left and right of the inequality respectively. Jensen's inequality for concave functions state $g\Big(\mathbb{E}\Big[\frac{p(z^{(j)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})}\Big]\Big) \geq \mathbb{E}\Big[g\left(\frac{p(z^{(i)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})}\right)\Big]$. It is easy to see that in order for equality to be achieved, $\frac{p(z^{(j)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})} = c$ for some constant $c$, since $g(\mathbb{E}[c]) = g(c) = \mathbb{E}[g(c)]$. Choosing $Q_{i}(z^{(i)}) \propto p(x^{(i)}, z^{(i)}; \theta)$ is sufficient to achieve constant value. For $Q_{i}$ to remain a probability distribution, set</p>
 $$
 \begin{align*}
-Q_{i}(z^{(j)}) &amp;= \frac{p(x^{(i)}, z^{(j)};\theta)}{\sum_{j=1}^{u}p(x^{(i)}, z^{(j)};\theta)}\\
-&amp;=\frac{p(x^{(i)}, z^{(j)};\theta)}{p(x^{(i)};\theta)}\\
-&amp;=p(z^{(j)}|x^{(i)};\theta)\\
+Q_{i}(z^{(i)}) &amp;= \frac{p(x^{(i)}, z^{(i)};\theta)}{\sum_{z^{(i)}}p(x^{(i)}, z^{(i)};\theta)}\\
+&amp;=\frac{p(x^{(i)}, z^{(i)};\theta)}{p(x^{(i)};\theta)}\\
+&amp;=p(z^{(i)}|x^{(i)};\theta),
 \end{align*}
-$$<p>Now that we know how to choose $Q_{i}(z^{(j)})$, we can proceed to describe the EM algorithm itself:</p>
+$$<p>which can be computed from $p(x^{(i)} | z^{(i)}; \theta)$ using Bayes rule. In the maximization step, we hold $Q_{i}(z^{(i)})$ fixed and maximize the lower bound $\sum_{i=1}^{m}\sum_{z^{(i)}}Q_{i}(z^{(i)})\log\frac{p(x^{(i)}, z^{(i)};\theta)}{Q_{i}(z^{(i)})}$ with respect to $\theta$. The algorithm can succinctly be summarized below:</p>
 <blockquote><p>Repeat until convergence {</p>
-<p>$\hspace{1.5cm}$ Expectation step: for each $i$, set 
-$$Q_{i}(z^{(j)}) = p(z^{(j)}|x^{(i)};\theta)$$</p>
+<p>$\hspace{1.5cm}$Expectation step: for each $i$, set 
+$$Q_{i}(z^{(i)}) := p(z^{(i)}|x^{(i)};\theta)$$</p>
 <p>$\hspace{1.5cm}$Maximization step: set
-$$\theta = \arg\max_{\theta} \sum_{i=1}^{m}\sum_{j=1}^{u}Q_{i}(z^{(j)})\:log\frac{p(x^{(i)}, z^{(j)};\theta)}{Q_{i}(z^{(i)})}$$</p>
+$$\theta := \arg\max_{\theta} \sum_{i=1}^{m}\sum_{z^{(i)}}Q_{i}(z^{(i)})log\frac{p(x^{(i)}, z^{(i)};\theta)}{Q_{i}(z^{(i)})}$$</p>
 <p>}</p>
 </blockquote>
-<p>Note the reason the first step is called expectation is because it chooses the appropriate $Q_{i}$ to define the log-likelihood written as a sum of expectations. We then find $\theta$ to maximize the log-likelihood in the maximization step.</p>
-
+<p>Note that the first step is called the expectation step because choosing $Q_{i}$ enables $\mathbb{E}_{z^{(i)} \sim Q_{i}}\Big[g\left(\frac{p(z^{(i)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})}\right)\Big]$ to be defined.</p>
+<p>There is a perspective viewing the EM algorithm as coordinate ascent on the lowerbound of the log-likelihood by maximizing it with respect to $Q$ in the expectation step and then maximizing it with respect to $\theta$ in the maximization step. This becomes clear if we write $\ell(\theta)$ as</p>
+$$J(Q, \theta) = \sum_{i=1}^{m}\sum_{z^{(i)}}Q_{i}(z^{(i)})\log\frac{p(x^{(i)}, z^{(i)};\theta)}{Q_{i}(z^{(i)})}.$$
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="2.-Proof-of-Convergence">2. Proof of Convergence<a class="anchor-link" href="#2.-Proof-of-Convergence">&#182;</a></h1><p>To show that the EM algorithm convergences upon the optimal $\theta$ after $n$ iterations, we need to show that $l(\theta^{(t+1)}) \ge l(\theta^{(t)})$, where $t$ represents the $t$th iteration.</p>
-<p>Recall that we have chosen $Q_{i}(z^{(j)}) = p(z^{(j)}|\:x^{(i)};\theta)$ because it leads to the equality:</p>
-$$l(\theta^{(t)}) = \sum_{i=1}^{m}\sum_{j=1}^{u}Q_{i}^{(t)}(z^{(j)})\:log\frac{p(z^{(j)}, x^{(i)};\theta^{(t)})}{Q_{i}^{(t)}(z^{(j)})}$$<p>After finding maximiation step, since we set $\theta$ to be the parameter that maximizes the log-likelihood, we have the inequality:</p>
+<h1 id="2.-Proof-of-Convergence">2. Proof of Convergence<a class="anchor-link" href="#2.-Proof-of-Convergence">&#182;</a></h1><p>To show that the EM algorithm convergences to some local optimum $\theta^{*}$ after $n$ iterations, we need to show that $l(\theta^{(t+1)}) \geq l(\theta^{(t)})$, where $t$ represents the $t$-th iteration of EM algorithm.</p>
+<p>After one iteration of EM algorithm, we achieve the following inequality</p>
 $$
 \begin{align*}
-l(\theta^{(t+1)}) &amp;\ge \sum_{i=1}^{m}\sum_{j=1}^{u}Q_{i}^{(t)}(z^{(j)})\:log\frac{p(z^{(j)}, x^{(i)};\theta^{(t+1)})}{Q_{i}^{(t)}(z^{(j)})}\\
-&amp;\ge \sum_{i=1}^{m}\sum_{j=1}^{u}Q_{i}^{(t)}(z^{(j)})\:log\frac{p(z^{(j)}, x^{(i)};\theta^{(t)})}{Q_{i}^{(t)}(z^{(j)})} = l(\theta^{(t)})\\
+l(\theta^{(t+1)}) &amp;\ge \sum_{i=1}^{m}\sum_{z^{(i)}}Q_{i}^{(t)}(z^{(i)})log\frac{p(z^{(i)}, x^{(i)};\theta^{(t+1)})}{Q_{i}^{(t)}(z^{(i)})}\\
+&amp;\geq \sum_{i=1}^{m}\sum_{z^{(i)}}Q_{i}^{(t)}(z^{(i)})\log\frac{p(z^{(i)}, x^{(i)};\theta^{(t)})}{Q_{i}^{(t)}(z^{(i)})} = \ell(\theta^{(t)}),
 \end{align*}
-$$<p>The inequality involving $l(\theta^{(t+1)})$ simply comes from Jensen's inequality, using similar logic used before. Hence, we have shown that with each iteration updating $\theta$, the log-likelihood increases monotonically.</p>
-<p>There is an alternative perspective viewing the EM algorithm as a method of iteratively increasing the lower-bound on the log-likelihood by maximizing it with respect to $Q$ in the expectation step and then maximizing it with respect to $\theta$. Let us define lower-bound on the log-likelihood $l(\theta)$ as $J(Q, \theta)$:</p>
-$$J(Q, \theta) = \sum_{i=1}^{m}\sum_{j=1}^{u}Q_{i}(z^{(j)})\:log\frac{p(x^{(i)}, z^{(j)};\theta)}{Q_{i}(z^{(j)})}$$<p>Since $J(Q, \theta)$ is the lower-bound on $l(\theta)$, the largest $J(Q, \theta)$ can be is equal to $l(\theta)$. Thus, choosing $Q$ such that $J(Q, \theta) = l(\theta)$ maximizes $J(Q, \theta)$ with respect to $Q$. Then, maximizing $J(Q, \theta)$ with respect to $\theta$ is simply the maxization step of the EM algorithm.</p>
+$$<p>where the first inequality is due to Jensen's inequality, the second inequality is due to setting $\theta^{(t + 1)} = \arg\max_{\theta}\sum_{i=1}^{m}\sum_{z^{(i)}}Q_{i}^{(t)}(z^{(i)})\log\frac{p(z^{(i)}, x^{(i)};\theta)}{Q_{i}^{(t)}(z^{(i)})}$, and the third equality is due to choosing $Q_{i}(z^{(i)}) = p(z^{(i)}|\:x^{(i)};\theta)$ in the expectation step.</p>
 
 </div>
 </div>
@@ -13187,115 +13191,175 @@ $$J(Q, \theta) = \sum_{i=1}^{m}\sum_{j=1}^{u}Q_{i}(z^{(j)})\:log\frac{p(x^{(i)},
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="3.-Case-Study">3. Case Study<a class="anchor-link" href="#3.-Case-Study">&#182;</a></h1><p>Suppose we wish to estimate the biases of two coins $A$ and $B$ as $p_{A}$ and $p_{B}$ respectively, given independent repeated sets of 10 coin tosses, where the identity of the coin used ($A$ or $B$) used in each set of tosses is unknown.</p>
+<h1 id="3.-Examples">3. Examples<a class="anchor-link" href="#3.-Examples">&#182;</a></h1><h2 id="3.1-Coin-Bias-Estimation">3.1 Coin Bias Estimation<a class="anchor-link" href="#3.1-Coin-Bias-Estimation">&#182;</a></h2><p>The following example is based on the one provided by Do and Batzoglou [2]. Suppose we wish to estimate the biases (probability of flipping heads) $\theta_{A}$ and $\theta_{B}$ of two coins $A$ and $B$ respectively, given independent repeated sets of 10 coin tosses, where the identity of the coin used ($A$ or $B$) used in each set of tosses is unknown.</p>
 <p><img src="https://i.imgur.com/6mvD1bt.png" alt="coin_toss"></p>
-<h2 id="3.1-Application">3.1 Application<a class="anchor-link" href="#3.1-Application">&#182;</a></h2><p>Using the same notation in this tutorial. We can see that:</p>
-<p>$
+<p>The first step is to define the statistical model. Let $n$ be number of coin tosses in a set and $m$ be number of sets. Also, let</p>
+$$
 \begin{align*}
 x^{(i)} &amp;= \text{number of heads in the } i\text{th set of 10 tosses}\\
-z^{(j)} &amp;= \text{whether coin used was } A \text{ or } B, \text{ with } j \in \{A, B\}\\
-Q_{i}(z^{(j)}) &amp;= \text{probability of } z^{(j)} \text{ for the }i\text{th  set of 10 tosses}\\
+z^{(i)} &amp;= \text{whether coin used was } A \text{ or } B, \text{in $i$-th set of 10 tosses, where } z^{(i)} \in \{A, B\}\\
+Q_{i}(z^{(i)}) &amp;= \text{probability of coin } z^{(i)} \text{ given }i\text{-th set of 10 tosses}.\\
+\theta &amp;= \{\theta_{A}, \theta_{B}\}
 \end{align*}
-$</p>
-<p>Let $n$ be the number of coin tosses in a set and $m$ is the number of sets. We see that the likelihood function $l(\theta)$ for set $i$ is simply the binomial distribution:</p>
-$$l(\theta)_{i} = \binom{n}{x^{(i)}}\theta^{x^{(i)}}(1-\theta)^{n-x^{(i)}}$$<p>Since the term $\binom{n}{x^{(i)}}$ is not dependent on $\theta$, we will drop it when writing our log-likelihood expression for a set of 10 coin tosses.</p>
-<h3 id="3.1.1-Expectation">3.1.1 Expectation<a class="anchor-link" href="#3.1.1-Expectation">&#182;</a></h3><p>Recall that in the expectation step for a sample $i$:</p>
-$$Q_{i}(z^{(j)}) = p(z^{(j)}|x^{(i)};\theta) = \frac{p(x^{(i)}, z^{(j)};\theta)}{\sum_{j=1}^{u}p(x^{(i)}, z^{(j)};\theta)}$$<p>In our case study this turns out to be for coin $A$:</p>
-$$Q_{i}(A) = \frac{\theta_{A}^{x^{(i)}}(1-\theta_{A}^{n-x^{(i)}})}{\theta_{A}^{x^{(i)}}(1-\theta_{A}^{n-x^{(i)}}) + \theta_{B}^{x^{(i)}}(1-\theta_{B}^{n-x^{(i)}})}$$<p>The term $Q_{i}(B)$ is derived similarly.</p>
-<h3 id="3.1.2-Maximization">3.1.2 Maximization<a class="anchor-link" href="#3.1.2-Maximization">&#182;</a></h3><p>In the maximization step, we are to find:</p>
-$$\theta = \arg\max_{\theta} \sum_{i=1}^{m}\sum_{j=1}^{u}Q_{i}(z^{(j)})\:log\frac{p(x^{(i)}, z^{(j)};\theta)}{Q_{i}(z^{(j)})}$$<p>Which can be found by finding $\theta$ such that the first derivative is equal to 0:</p>
-$$\frac{d}{d\theta}\sum_{i=1}^{m}\sum_{j=1}^{u}Q_{i}(z^{(j)})\:log\frac{p(x^{(i)}, z^{(j)};\theta)}{Q_{i}(z^{(j)})} = 0$$<p>The numerator $p(x^{(i)}, z^{(j)};\theta)$ means what is the probability of observing $x^{(i)}$ number of heads when the probability of landing heads is $\theta$ of coin $z^{(j)}$, and is expressed as the binomial distribution. Let $p_{z_{j}}^{(i)} = Q_{i}(z^{(j)})$, representing the probability of coin being $z_{j}$ for experiment $i$ determined previously from the expectation step. Leaving out the binomial coefficient leads to the expression:</p>
+$$<p>The probability of coin $z$ is modeled as $z \sim \text{bernoulli($\phi$)}$ and $x | z \sim \text{binomial}(n, \theta_{z})$, where $p(z = A | \phi) = \phi$ and $p(z = B | \phi) = 1 - \phi$.</p>
+<h3 id="3.1.1-Expectation">3.1.1 Expectation<a class="anchor-link" href="#3.1.1-Expectation">&#182;</a></h3><p>Recall that in the expectation step set</p>
 $$
 \begin{align*}
-\sum_{j=1}^{u}Q_{i}(z^{(j)})\:log\frac{p(x^{(i)}, z^{(j)};\theta)}{Q_{i}(z^{(j)})} &amp;\propto p_{z_{A}^{(i)}}\Big[x^{(i)}log(\theta_{A}) + (n-x^{(i)})log(1-\theta_{A})-log(p_{z_{A}^{(i)}})\Big]\\
-&amp;+ \:p_{z_{B}}^{(i)}\Big[x^{(i)}log(\theta_{B}) + (n-x^{(i)})log(1-\theta_{B})-log(p_{z_{B}^{(i)}})\Big]\\
+Q_{i}(z^{(i)}) &amp;= p(z^{(i)}|x^{(i)};\theta)\\
+&amp;= \frac{p(x^{(i)}, z^{(i)};\theta)}{\sum_{z^{(i)}}p(x^{(i)}, z^{(i)};\theta)}\\
+&amp;= \frac{p(x^{(i)} | z^{(i)};\theta)p(z^{(i)}; \theta)}{\sum_{z^{(i)}}p(x^{(i)} | z^{(i)};\theta)p(z^{(i)}; \theta)},
 \end{align*}
-$$<p>To find the maximal bias for coin $A$, take the first partial derivative with respect to $\theta_{A}$:</p>
+$$<p>where the last line comes from applying Bayes rule. Thus, for coin $A$</p>
+$$Q_{i}(A) = \frac{\theta_{A}^{x^{(i)}}(1-\theta_{A})^{n-x^{(i)}}\phi}{\theta_{A}^{x^{(i)}}(1-\theta_{A})^{n-x^{(i)}}\phi + \theta_{B}^{x^{(i)}}(1-\theta_{B})^{n-x^{(i)}}(1 - \phi)}$$<p>The term $Q_{i}(B)$ is derived analogously.</p>
+<h3 id="3.1.2-Maximization">3.1.2 Maximization<a class="anchor-link" href="#3.1.2-Maximization">&#182;</a></h3><p>We maximize the log-likelihood lowerbound with respect to $\theta_{A}, \theta_{B}$, and $\phi$ using the first-order optimality condition. To find $\theta_{A}$, express $\ell(\theta, \phi)$ only in terms that contain $\theta_{A}$</p>
 $$
 \begin{align*}
-\frac{d}{d\theta_{A}}\sum_{i=1}^{m}\sum_{j=1}^{u}Q_{i}(z^{(j)})\:log\frac{p(x^{(i)}, z^{(j)};\theta)}{Q_{i}(z^{(j)})} &amp;=\sum_{i=1}^{m}p_{z_{A}^{(i)}}\Big[\frac{x^{(i)}}{\theta_{A}} - \frac{n-x^{(i)}}{1-\theta_{A}}\Big]\\
-&amp;=\sum_{i=1}^{m}\Big[p_{z_{A}^{(i)}}x^{(i)}-p_{z_{A}^{(i)}}x^{(i)}\theta_{A} - n\theta_{A}p_{z_{A}^{(i)}} + \theta_{A}x^{(i)}p_{z_{A}^{(i)}}\Big] = 0\\
-&amp;\Rightarrow n\theta_{A}\sum_{i=1}^{m}p_{z_{A}^{(i)}} = \sum_{i=1}^{m}p_{z_{A}^{(i)}}x^{(i)}\\
-&amp;\Rightarrow \theta_{A} = \frac{\sum_{i=1}^{m}p_{z_{A}^{(i)}}x^{(i)}}{n\sum_{i=1}^{m}p_{z_{A}^{(i)}}}\\
+\ell(\theta, \phi) \propto \sum_{i=1}^{m}Q_{i}(A)\left(x^{(i)}\log\theta_{A} + (n - x^{(i)})\log(1 - \theta_{A}) - \log Q_{i}(A)\right).
 \end{align*}
-$$<p>The $\theta_{B}$ maximizing the lower bound on the log-likelihood of the data is found in a similar way.</p>
-
+$$<p>Then, take partial derivative with respect to $\theta_{A}$ and solve for $\theta_{A}$ so that the partial derivative is equal to zero.</p>
+$$
+\begin{align*}
+\frac{\partial}{\partial\theta_{A}}\ell(\theta, \phi) &amp;= \sum_{i=1}^{m}Q_{i}(z^{(i)}) \left(\frac{x^{(i)}}{\theta_{A}} - \frac{n - x^{(i)}}{1-\theta_{A}}\right) = 0\\
+&amp;\iff \theta_{A}^{*} = \frac{\sum_{i = 1}^{m}Q_{i}(z^{(i)})x^{(i)}}{n\sum_{i = 1}^{m}Q_{i}(z^{(i)})}.
+\end{align*}
+$$<p>The process to finding $\theta_{B}^{*}$ is analogous. Next, to find $\phi$, express $\ell(\theta, \phi)$ only in terms that contain $\phi$</p>
+$$
+\begin{align*}
+\ell(\theta, \phi) \propto \sum_{i=1}^{m}Q_{i}(A)\log \phi + Q_{i}(B)\log(1 - \phi)
+\end{align*}
+$$<p>Then, take partial derivative with respect to $\phi$ and solve for $\phi$ so that the partial derivative is equal to zero.</p>
+$$
+\begin{align*}
+\frac{\partial}{\partial\phi}\ell(\theta, \phi) &amp;= \sum_{i=1}^{m}\frac{Q_{i}(A)}{\phi} - \frac{Q_{i}(B)}{1 - \phi} = 0\\
+&amp;\iff \phi^{*} = \frac{\sum_{i = 1}^{m}Q_{i}(A)}{\sum_{i = 1}^{m}Q_{i}(A) + Q_{i}(B)}
+\end{align*}
+$$
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="3.2-Implementation">3.2 Implementation<a class="anchor-link" href="#3.2-Implementation">&#182;</a></h2><p>Let us implement an EM algorithm to estimate the biases of two coins in a set of coin tosses. Our dataset will follow the one depicted in the diagram above. We will first implement an EM algorithm class with the following usage:</p>
+<h3 id="3.1.3-Implementation">3.1.3 Implementation<a class="anchor-link" href="#3.1.3-Implementation">&#182;</a></h3><p>Now we can implement the EM algorithm to estimate the biases of two coins given a set of coin toss results. We will first implement the EM algorithm class with the following usage:</p>
 
-<pre><code>clf = EM(initial=(0.600, 0.500), convergence=0.01, verbose=False)</code></pre>
+<pre><code>EM_coin(initial=(0.500, 0.500, 0.500), n = 10, convergence=0.01, verbose=False)</code></pre>
+<p>where</p>
 <ol>
-<li>initial: tuple of size two indicating initial guesses to the biases of the two coins</li>
-<li>convergence: threshold indicating difference in estimated parameters between iterations below which convergence is established</li>
-<li>verbose: boolean indicating whether to output the estimated parameter values per iteration</li>
+<li><code>initial</code>: tuple of size thress indicating initial guesses to the coin biases and coin probabilities.</li>
+<li><code>convergence</code>: threshold of sum of differences in estimated parameters between iterations, below which the EM algorithm stops.</li>
+<li><code>n</code>: number of coin toss trials.</li>
+<li><code>verbose</code>: boolean indicating whether to output the estimated parameter values per iteration.</li>
 </ol>
-<p>To train, where <code>data</code> is the variable assigned to a 2D numpy array with dimensions $m\:x\:n$:</p>
+<p>To train on <code>data</code>, call</p>
 
-<pre><code>p1, p2 = clf.train(data)</code></pre>
-<p>Where <code>p1</code> and <code>p2</code> are the final estimated biases for the two coins.</p>
+<pre><code>estimates = clf.train(data)</code></pre>
+<p>where <code>data</code> is numpy array of coin toss sets, with each value indicating number of heads from one set of 10 tosses. We simulate our data with the following parameter values.</p>
+<ul>
+<li>$\phi = 0.75$</li>
+<li>$\theta_{A} = 0.25$</li>
+<li>$\theta_{B} = 0.60$</li>
+</ul>
 
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[3]:</div>
+<div class="prompt input_prompt">In&nbsp;[1]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> 
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="k">class</span> <span class="nc">EM</span><span class="p">:</span> 
+<span class="n">phi</span> <span class="o">=</span> <span class="mf">0.75</span>
+<span class="n">thetaA</span> <span class="o">=</span> <span class="mf">0.25</span>
+<span class="n">thetaB</span> <span class="o">=</span> <span class="mf">0.60</span>
+
+<span class="n">m</span> <span class="o">=</span> <span class="mi">500</span>
+
+<span class="n">numA</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">binomial</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">phi</span><span class="p">)</span>
+<span class="n">numB</span> <span class="o">=</span> <span class="n">m</span> <span class="o">-</span> <span class="n">numA</span>
+
+<span class="c1"># generate coin tosses from coin A</span>
+<span class="n">tossesA</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">binomial</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">thetaA</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numA</span><span class="p">)])</span>
+<span class="n">tossesB</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">binomial</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">thetaB</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numB</span><span class="p">)])</span>
+
+<span class="n">tosses</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">tossesA</span><span class="p">,</span> <span class="n">tossesB</span><span class="p">))</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Below is the algorithm implementation.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[163]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">class</span> <span class="nc">EM</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span> 
     <span class="c1"># Set initial coin bias guesses</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="p">(</span><span class="mf">0.600</span><span class="p">,</span> <span class="mf">0.500</span><span class="p">),</span> <span class="n">convergence</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">initial</span> <span class="o">=</span> <span class="n">initial</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="p">(</span><span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.500</span><span class="p">),</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">convergence</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> 
+                 <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">convergence</span> <span class="o">=</span> <span class="n">convergence</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="n">n</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Q</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;thetaA&quot;</span><span class="p">:</span> <span class="n">initial</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;thetaB&quot;</span><span class="p">:</span> <span class="n">initial</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;phi&quot;</span><span class="p">:</span> <span class="n">initial</span><span class="p">[</span><span class="mi">2</span><span class="p">]}</span>
     
     <span class="k">def</span> <span class="nf">likelihood</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">p</span><span class="o">**</span><span class="n">k</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">p</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="n">k</span><span class="p">)</span>
     
-    <span class="c1"># Returns probability distribution coins used for each experiment</span>
-    <span class="k">def</span> <span class="nf">expectation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">):</span>
-        <span class="n">ncol</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">heads</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">l1</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">likelihood</span><span class="p">(</span><span class="n">ncol</span><span class="p">,</span> <span class="n">p1</span><span class="p">,</span> <span class="n">head</span><span class="p">)</span> <span class="k">for</span> <span class="n">head</span> <span class="ow">in</span> <span class="n">heads</span><span class="p">]</span>
-        <span class="n">l2</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">likelihood</span><span class="p">(</span><span class="n">ncol</span><span class="p">,</span> <span class="n">p2</span><span class="p">,</span> <span class="n">head</span><span class="p">)</span> <span class="k">for</span> <span class="n">head</span> <span class="ow">in</span> <span class="n">heads</span><span class="p">]</span>
-        <span class="n">likelihoods</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">l1</span><span class="p">,</span> <span class="n">l2</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
-        <span class="n">total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">likelihoods</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">prob1</span> <span class="o">=</span> <span class="n">likelihoods</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">/</span> <span class="n">total</span>
-        <span class="n">prob2</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">prob1</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">prob1</span><span class="p">,</span> <span class="n">prob2</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">expectation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="n">lA</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">likelihood</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;thetaA&quot;</span><span class="p">],</span> <span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;phi&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
+        <span class="n">lB</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">likelihood</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;thetaB&quot;</span><span class="p">],</span> <span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;phi&quot;</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">lA</span><span class="p">,</span> <span class="n">lB</span><span class="p">],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">/</span> <span class="n">total</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
     
-    <span class="c1"># Returns updated coin biases</span>
-    <span class="k">def</span> <span class="nf">maximization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">probs</span><span class="p">):</span> 
-        <span class="n">ncol</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">heads</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">totals</span> <span class="o">=</span> <span class="n">ncol</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">probs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="n">numerators</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">heads</span> <span class="o">*</span> <span class="n">probs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">numerators</span> <span class="o">/</span> <span class="n">totals</span>
+    <span class="k">def</span> <span class="nf">maximization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="n">thetaA_n</span><span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]])</span> <span class="o">*</span> <span class="n">data</span><span class="p">)</span>
+        <span class="n">thetaA_d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;thetaA&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">thetaA_n</span> <span class="o">/</span> <span class="n">thetaA_d</span>
+        
+        <span class="n">thetaB_n</span><span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">1</span><span class="p">]])</span> <span class="o">*</span> <span class="n">data</span><span class="p">)</span>
+        <span class="n">thetaB_d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;thetaB&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">thetaB_n</span> <span class="o">/</span> <span class="n">thetaB_d</span>
+        
+        <span class="n">totals</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]])</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">totals</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;phi&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">phi</span>
+        
+    <span class="k">def</span> <span class="nf">difference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">oldParameters</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;thetaA&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">oldParameters</span><span class="p">[</span><span class="s2">&quot;thetaA&quot;</span><span class="p">])</span> <span class="o">+</span>\
+                <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;thetaB&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">oldParameters</span><span class="p">[</span><span class="s2">&quot;thetaB&quot;</span><span class="p">])</span> <span class="o">+</span>\
+                <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;phi&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">oldParameters</span><span class="p">[</span><span class="s2">&quot;phi&quot;</span><span class="p">])</span>
     
     <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
-        <span class="n">p1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">p2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">p1Old</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">p2Old</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">oldParameters</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;thetaA&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;thetaB&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;phi&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
         <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="k">while</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">p1</span><span class="o">-</span><span class="n">p1Old</span><span class="p">)</span> <span class="o">+</span> <span class="nb">abs</span><span class="p">(</span><span class="n">p2</span><span class="o">-</span><span class="n">p2Old</span><span class="p">))</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">convergence</span><span class="p">:</span> 
-            <span class="n">p1Old</span> <span class="o">=</span> <span class="n">p1</span>
-            <span class="n">p2Old</span> <span class="o">=</span> <span class="n">p2</span>
+        
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">oldParameters</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">convergence</span><span class="p">:</span>
+            <span class="n">oldParameters</span><span class="p">[</span><span class="s2">&quot;thetaA&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;thetaA&quot;</span><span class="p">]</span>
+            <span class="n">oldParameters</span><span class="p">[</span><span class="s2">&quot;thetaB&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;thetaB&quot;</span><span class="p">]</span>
+            <span class="n">oldParameters</span><span class="p">[</span><span class="s2">&quot;phi&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;phi&quot;</span><span class="p">]</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span> 
-                <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;. &quot;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="nb">round</span><span class="p">(</span><span class="n">p2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-            <span class="n">probs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expectation</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">)</span>
-            <span class="n">p1</span><span class="p">,</span> <span class="n">p2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">maximization</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">probs</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;. &quot;</span> <span class="o">+</span> <span class="s2">&quot; thetaA: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;thetaA&quot;</span><span class="p">],</span> <span class="mi">3</span><span class="p">))</span> <span class="o">+</span>\
+                      <span class="s2">&quot;, thetaB: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;thetaB&quot;</span><span class="p">],</span> <span class="mi">3</span><span class="p">))</span> <span class="o">+</span>\
+                      <span class="s2">&quot;, phi: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;phi&quot;</span><span class="p">],</span> <span class="mi">3</span><span class="p">)))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expectation</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">maximization</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
             <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
 
-        <span class="k">return</span> <span class="n">p1</span><span class="p">,</span> <span class="n">p2</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span>
 </pre></div>
 
     </div>
@@ -13313,18 +13377,14 @@ $$<p>The $\theta_{B}$ maximizing the lower bound on the log-likelihood of the da
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[4]:</div>
+<div class="prompt input_prompt">In&nbsp;[168]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
-                 <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
-                 <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> 
-                 <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
-                 <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
-<span class="n">clf</span> <span class="o">=</span> <span class="n">EM</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">p1</span><span class="p">,</span> <span class="n">p2</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Final Estimation: &quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">algorithmCoin</span> <span class="o">=</span> <span class="n">EM</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">estimates</span> <span class="o">=</span> <span class="n">algorithmCoin</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">tosses</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Estimates: thetaA =&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">estimates</span><span class="p">[</span><span class="s2">&quot;thetaA&quot;</span><span class="p">],</span> <span class="mi">3</span><span class="p">)),</span> 
+      <span class="s2">&quot;; thetaB =&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">estimates</span><span class="p">[</span><span class="s2">&quot;thetaB&quot;</span><span class="p">],</span> <span class="mi">3</span><span class="p">)),</span> 
+      <span class="s2">&quot;; phi =&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">estimates</span><span class="p">[</span><span class="s2">&quot;phi&quot;</span><span class="p">],</span> <span class="mi">3</span><span class="p">)))</span>
 </pre></div>
 
     </div>
@@ -13341,14 +13401,28 @@ $$<p>The $\theta_{B}$ maximizing the lower bound on the log-likelihood of the da
 
 
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>1.  0.6 0.5
-2.  0.713 0.581
-3.  0.745 0.569
-4.  0.768 0.55
-5.  0.783 0.535
-6.  0.791 0.526
-Final Estimation: 
-0.794532537994 0.522390437518
+<pre>1.  thetaA: 0.4, thetaB: 0.6, phi: 0.5
+2.  thetaA: 0.258, thetaB: 0.522, phi: 0.727
+3.  thetaA: 0.245, thetaB: 0.55, phi: 0.723
+4.  thetaA: 0.241, thetaB: 0.561, phi: 0.724
+5.  thetaA: 0.241, thetaB: 0.566, phi: 0.727
+6.  thetaA: 0.241, thetaB: 0.569, phi: 0.73
+7.  thetaA: 0.242, thetaB: 0.571, phi: 0.733
+8.  thetaA: 0.242, thetaB: 0.572, phi: 0.736
+9.  thetaA: 0.243, thetaB: 0.574, phi: 0.738
+10.  thetaA: 0.243, thetaB: 0.575, phi: 0.74
+11.  thetaA: 0.244, thetaB: 0.576, phi: 0.742
+12.  thetaA: 0.244, thetaB: 0.578, phi: 0.744
+13.  thetaA: 0.245, thetaB: 0.578, phi: 0.745
+14.  thetaA: 0.245, thetaB: 0.579, phi: 0.747
+15.  thetaA: 0.245, thetaB: 0.58, phi: 0.748
+16.  thetaA: 0.245, thetaB: 0.581, phi: 0.749
+17.  thetaA: 0.246, thetaB: 0.581, phi: 0.75
+18.  thetaA: 0.246, thetaB: 0.582, phi: 0.75
+19.  thetaA: 0.246, thetaB: 0.582, phi: 0.751
+20.  thetaA: 0.246, thetaB: 0.583, phi: 0.752
+21.  thetaA: 0.246, thetaB: 0.583, phi: 0.752
+Estimates: thetaA = 0.246 ; thetaB = 0.583 ; phi = 0.753
 </pre>
 </div>
 </div>
@@ -13360,37 +13434,7 @@ Final Estimation:
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>Let us assess whether this answer makes sense in light of the data that we have.</p>
-<table>
-<thead><tr>
-<th>Set Index</th>
-<th>Number of Heads</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>1</td>
-<td>5</td>
-</tr>
-<tr>
-<td>2</td>
-<td>9</td>
-</tr>
-<tr>
-<td>3</td>
-<td>8</td>
-</tr>
-<tr>
-<td>4</td>
-<td>4</td>
-</tr>
-<tr>
-<td>5</td>
-<td>7</td>
-</tr>
-</tbody>
-</table>
-<p>Based on this data, it appears that sets 2, 3, and 5 results from using the coin with estimated bias of 0.79, while sets 1 and 4 results from using the coin with estimated bias of 0.52. The number of heads appearing in our dataset sounds reasonable with this coin to set assignment</p>
+<p>The estimated parameters are $\phi = 0.753$, $\theta_{A} = 0.246$, and $\theta_{B} = 0.583$, which agrees quite well with the true parameters.</p>
 
 </div>
 </div>
@@ -13399,8 +13443,8 @@ Final Estimation:
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h1 id="Reference">Reference<a class="anchor-link" href="#Reference">&#182;</a></h1><ol>
-<li>Ng, A. <em>The EM Algorithm</em>. Retrieved from <a href="http://cs229.stanford.edu/">http://cs229.stanford.edu/</a></li>
-<li>Do, C. B., &amp; Batzoglou, S. (2008). What is the expectation maximization algorithm? Nature Biotechnology, 26(8), 897–899. doi:10.1038/nbt1406</li>
+<li>Ng, Andrew. "CS229 Lecture notes." CS229 Lecture notes 1.1 (2000): 1-3.</li>
+<li>Do, Chuong B., and Serafim Batzoglou. "What is the expectation maximization algorithm?." Nature biotechnology 26.8 (2008): 897-899.</li>
 </ol>
 
 </div>
