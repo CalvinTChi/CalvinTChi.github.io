@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# update master branc
+# update master branch
 mkdir -p /tmp/workspace
 cp -r * /tmp/workspace/
 git add -A .
