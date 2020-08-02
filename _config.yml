@@ -30,6 +30,7 @@ github_username: CalvinTChi
 # Build settings
 theme: minima
 plugins:
+  - jekyll-feed
   - jekyll-sitemap
 
 # Exclude from processing.
