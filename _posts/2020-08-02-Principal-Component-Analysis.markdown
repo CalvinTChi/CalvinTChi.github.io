@@ -14,9 +14,10 @@ $$\newcommand{\norm}[1]{\lvert \lvert #1 \rvert \rvert}$$
 Principle component analysis (PCA) is a dimensionality reduction technique that performs linear projection of $x^{(1)}, \dots ,x^{(m)} \in \mathbb{R}^{n}$ onto a lower dimensional space $k << n$ such that the projections $\tilde{x}^{(1)}, \cdots ,\tilde{x}^{(m)} \in \mathbb{R}^{k}$ retain as much information in the original data as possible. PCA does so by projecting $x^{(1)}, \dots ,x^{(m)}$ onto $k$ orthogonal vectors such that the variance of the projected samples is maximized. Alternatively and equivalently, PCA can be understood as finding $k$ successive least squares projection vectors for samples $x^{(1)}, \dots ,x^{(m)}$ onto a line. 
 
 ## 2. Maximum Variance Projection
-Let us start with the problem of solving for a vector $u: || u ||_{2} = 1$ for $x^{(1)}, \dots ,x^{(m)}$ to project to such that that the projections have maximum variance. The projection component of $x$ onto $u$ is given by the projection equation
+Let us start with the problem of solving for a vector $u: 
+\lvert \lvert u \lvert \lvert_{2} = 1$ for $x^{(1)}, \dots ,x^{(m)}$ to project to such that that the projections have maximum variance. The projection component of $x$ onto $u$ is given by the projection equation
 
-$$proj_{u}x = \frac{x^{T}u}{||u||_{2}} = u^{T}x$$
+$$proj_{u}x = \frac{x^{T}u}{\lvert \lvert u \lvert \lvert_{2}} = u^{T}x$$
 
 The mean of the projections is $u^{T}\hat{x}$, where $\hat{x} = \frac{1}{m}\sum_{i}x^{(i)}$. From definition of variance
 
