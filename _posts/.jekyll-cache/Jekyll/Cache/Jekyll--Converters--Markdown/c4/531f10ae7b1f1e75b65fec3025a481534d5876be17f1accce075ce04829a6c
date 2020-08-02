@@ -1,0 +1,539 @@
+I"Z�<h2 id="1-motivation">1. Motivation</h2>
+
+<p>The standard maximum likelihood estimation (MLE) problem solves for</p>
+
+\[\theta^{*} = \arg \max_{\theta}\ell(\theta),\]
+
+<p>the parameter that maximizes the log-likelihood of observed data \(\ell(\theta)\), given a statistical model. However, in incomplete data scenarios with unobserved latent variable \(Z\), simultaneously solving for \(z, \theta\) to maximize the log-likelihood \(\ell(\theta, z)\) can be impossible. Conversely, if \(z\) were observed, the estimation problem would be easily solvable.</p>
+
+<p>The expectation-maximization (EM) algorithm is a method to solve for a local maximum likelihood estimate of \(\theta\) numerically in incomplete data scenarios, alternating maximization between the two sets of unknowns, keeping the other set fixed. This idea is also known as coordinate ascent.</p>
+
+<h2 id="2-algorithm">2. Algorithm</h2>
+
+<p>The following presentation is largely based on the notes written by Andrew Ng [1]. Given a dataset of \(\{x^{(1)},...,x^{(m)}\}\) of \(m\) independent samples, the log-likelihood is given by</p>
+
+\[\ell(\theta) = \sum_{i = 1}^{m}\log p(x^{(i)}; \theta) = \sum_{i = 1}^{m}\log \sum_{z^{(i)}}p(x^{(i)}, z^{(i)}; \theta),\]
+
+<p>where \(Z\) is an unknown discrete random variable (\(z\)’s are outcome values). Now for any distribution \(z^{(i)} \sim Q_{i}\) (i.e. \(Q_{i}(z^{(i)})\)), we can further rewrite \(\ell(\theta)\)</p>
+
+\[\begin{align*}
+\ell(\theta) &amp;= \sum_{i = 1}^{m}\log \sum_{z^{(i)}}p(x^{(i)}, z^{(i)}; \theta)\\
+&amp;= \sum_{i=1}^{m}\log\sum_{z^{(i)}}Q_{i}(z^{(i)})\frac{p(x^{(i)}, z^{(i)};\theta)}{Q_{i}(z^{(i)})}\\
+&amp;\geq \sum_{i=1}^{m}\sum_{z^{(i)}}Q_{i}(z^{(i)})\log\frac{p(x^{(i)}, z^{(i)};\theta)}{Q_{i}(z^{(i)})}.
+\end{align*}\]
+
+<p>The inequality above is due to Jensen’s inequality applied to concave functions. Jensen’s inequality states that for a convex function \(f\) and random variable \(X\), the following inequality \(\mathbb{E}[f(X)] \geq f(\mathbb{E}[X])\) is true. One way to easily recall the direction of inequality is using the variance formula \(Var(X) = \mathbb{E}[X^{2}] - \mathbb{E}[X]^{2} \geq 0 \iff \mathbb{E}[X^{2}] \geq \mathbb{E}[X]^{2}\), where \(f(x) = x^{2}\) is a convex function.</p>
+
+<p>Now the expectation and maximization steps can be derived. The expectation step considers current \(\theta\) value fixed and sets \(Q_{i}(z^{(i)})\) so that the inequality above becomes equality. Start by noticing that</p>
+
+\[\log\sum_{z^{(i)}}\frac{p(z^{(i)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})}Q_{i}(z^{(i)}) = g\Big(\mathbb{E}\Big[\frac{p(z^{(j)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})}\Big]\Big)\]
+
+<p>and</p>
+
+\[\sum_{z^{(i)}}Q_{i}(z^{(i)})\log\frac{p(z^{(i)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})} = 
+\mathbb{E}\Big[g\left(\frac{p(z^{(i)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})}\right)\Big],\]
+
+<p>which are summation terms to the left and right of the inequality respectively. Jensen’s inequality for concave functions state \(g\Big(\mathbb{E}\Big[\frac{p(z^{(j)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})}\Big]\Big) \geq \mathbb{E}\Big[g\left(\frac{p(z^{(i)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})}\right)\Big]\). It is easy to see that in order for equality to be achieved, \(\frac{p(z^{(j)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})} = c\) for some constant \(c\), since \(g(\mathbb{E}[c]) = g(c) = \mathbb{E}[g(c)]\). Choosing \(Q_{i}(z^{(i)}) \propto p(x^{(i)}, z^{(i)}; \theta)\) is sufficient to achieve constant value. For \(Q_{i}\) to remain a probability distribution, set</p>
+
+\[\begin{align}
+Q_{i}(z^{(i)}) &amp;= \frac{p(x^{(i)}, z^{(i)};\theta)}{\sum_{z^{(i)}}p(x^{(i)}, z^{(i)};\theta)}\\
+&amp;=\frac{p(x^{(i)}, z^{(i)};\theta)}{p(x^{(i)};\theta)}\\
+&amp;=p(z^{(i)}|x^{(i)};\theta),
+\end{align}\]
+
+<p>which can be computed from \(p(x^{(i)} \lvert z^{(i)}; \theta)\) using Bayes rule. In the maximization step, we hold \(Q_{i}(z^{(i)})\) fixed and maximize the lower bound \(\sum_{i=1}^{m}\sum_{z^{(i)}}Q_{i}(z^{(i)})\log\frac{p(x^{(i)}, z^{(i)};\theta)}{Q_{i}(z^{(i)})}\) with respect to \(\theta\). The algorithm can succinctly be summarized below:</p>
+
+<blockquote>
+  <p>Repeat until convergence {</p>
+
+  <p>\(\hspace{1.5cm}\)Expectation step: for each \(i\), set 
+\(Q_{i}(z^{(i)}) := p(z^{(i)}|x^{(i)};\theta)\)</p>
+
+  <p>\(\hspace{1.5cm}\)Maximization step: set
+\(\theta := \arg\max_{\theta} \sum_{i=1}^{m}\sum_{z^{(i)}}Q_{i}(z^{(i)})log\frac{p(x^{(i)}, z^{(i)};\theta)}{Q_{i}(z^{(i)})}\)</p>
+
+  <p>}</p>
+</blockquote>
+
+<p>Note that the first step is called the expectation step because choosing \(Q_{i}\) enables \(\mathbb{E}_{z^{(i)} \sim Q_{i}}\Big[g\left(\frac{p(z^{(i)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})}\right)\Big]\) to be defined.</p>
+
+<p>There is a perspective viewing the EM algorithm as coordinate ascent on the lowerbound of the log-likelihood by maximizing it with respect to \(Q\) in the expectation step and then maximizing it with respect to \(\theta\) in the maximization step. This becomes clear if we write \(\ell(\theta)\) as</p>
+
+\[J(Q, \theta) = \sum_{i=1}^{m}\sum_{z^{(i)}}Q_{i}(z^{(i)})\log\frac{p(x^{(i)}, z^{(i)};\theta)}{Q_{i}(z^{(i)})}.\]
+
+<h2 id="2-proof-of-convergence">2. Proof of Convergence</h2>
+
+<p>To show that the EM algorithm convergences to some local optimum \(\theta^{*}\) after $n$ iterations, we need to show that \(\ell(\theta^{(t+1)}) \geq \ell(\theta^{(t)})\), where \(t\) represents the \(t\)-th iteration of EM algorithm.</p>
+
+<p>After one iteration of EM algorithm, we achieve the following inequality</p>
+
+\[\begin{align*}
+l(\theta^{(t+1)}) &amp;\ge \sum_{i=1}^{m}\sum_{z^{(i)}}Q_{i}^{(t)}(z^{(i)})log\frac{p(z^{(i)}, x^{(i)};\theta^{(t+1)})}{Q_{i}^{(t)}(z^{(i)})}\\
+&amp;\geq \sum_{i=1}^{m}\sum_{z^{(i)}}Q_{i}^{(t)}(z^{(i)})\log\frac{p(z^{(i)}, x^{(i)};\theta^{(t)})}{Q_{i}^{(t)}(z^{(i)})} = \ell(\theta^{(t)}),
+\end{align*}\]
+
+<p>where the first inequality is due to Jensen’s inequality, the second inequality is due to setting \(\theta^{(t + 1)} = \arg\max_{\theta}\sum_{i=1}^{m}\sum_{z^{(i)}}Q_{i}^{(t)}(z^{(i)})\log\frac{p(z^{(i)}, x^{(i)};\theta)}{Q_{i}^{(t)}(z^{(i)})}\), and the third equality is due to choosing \(Q_{i}(z^{(i)}) = p(z^{(i)}\lvert \:x^{(i)};\theta)\) in the expectation step.</p>
+
+<h2 id="3-examples">3. Examples</h2>
+
+<h3 id="31-coin-bias-estimation">3.1 Coin Bias Estimation</h3>
+
+<p>The following example is based on the one provided by Do and Batzoglou [2]. Suppose we wish to estimate the biases (probability of flipping heads) \(\theta_{A}\) and \(\theta_{B}\) of two coins \(A\) and \(B\) respectively, given independent repeated sets of 10 coin tosses, where the identity of the coin used (\(A\) or \(B\)) used in each set of tosses is unknown.</p>
+
+<p align="center">
+  <img src="https://i.imgur.com/6mvD1bt.png" />
+</p>
+
+<p>The first step is to define the statistical model. Let \(n\) be number of coin tosses in a set and \(m\) be number of sets. Also, let</p>
+
+\[\begin{align*}
+x^{(i)} &amp;= \text{number of heads in the } i\text{th set of 10 tosses}\\
+z^{(i)} &amp;= \text{whether coin used was } A \text{ or } B, \text{in $i$-th set of 10 tosses, where } z^{(i)} \in \{A, B\}\\
+Q_{i}(z^{(i)}) &amp;= \text{probability of coin } z^{(i)} \text{ given }i\text{-th set of 10 tosses}.\\
+\theta &amp;= \{\theta_{A}, \theta_{B}\}\\
+\end{align*}\]
+
+<p>The probability of coin \(z\) is modeled as \(z \sim \text{bernoulli($\phi$)}\) and \(x \lvert z \sim \text{binomial}(n, \theta_{z})\), where \(p(z = A \lvert \phi) = \phi\) and \(p(z = B \lvert \phi) = 1 - \phi\).</p>
+
+<h3 id="311-expectation">3.1.1 Expectation</h3>
+<p>Recall that in the expectation step set</p>
+
+\[\begin{align*}
+Q_{i}(z^{(i)}) &amp;= p(z^{(i)}|x^{(i)};\theta)\\
+&amp;= \frac{p(x^{(i)}, z^{(i)};\theta)}{\sum_{z^{(i)}}p(x^{(i)}, z^{(i)};\theta)}\\
+&amp;= \frac{p(x^{(i)} | z^{(i)};\theta)p(z^{(i)}; \theta)}{\sum_{z^{(i)}}p(x^{(i)} | z^{(i)};\theta)p(z^{(i)}; \theta)},
+\end{align*}\]
+
+<p>where the last line comes from applying Bayes rule. Thus, for coin \(A\)</p>
+
+\[Q_{i}(A) = \frac{\theta_{A}^{x^{(i)}}(1-\theta_{A})^{n-x^{(i)}}\phi}{\theta_{A}^{x^{(i)}}(1-\theta_{A})^{n-x^{(i)}}\phi + \theta_{B}^{x^{(i)}}(1-\theta_{B})^{n-x^{(i)}}(1 - \phi)}\]
+
+<p>The term \(Q_{i}(B)\) is derived analogously.</p>
+
+<h3 id="312-maximization">3.1.2 Maximization</h3>
+<p>We maximize the log-likelihood lowerbound with respect to \(\theta_{A}, \theta_{B}\), and \(\phi\) using the first-order optimality condition. To find \(\theta_{A}\), express \(\ell(\theta, \phi)\) only in terms that contain \(\theta_{A}\)</p>
+
+\[\begin{align*}
+\ell(\theta, \phi) \propto \sum_{i=1}^{m}Q_{i}(A)\left(x^{(i)}\log\theta_{A} + (n - x^{(i)})\log(1 - \theta_{A}) - \log Q_{i}(A)\right).
+\end{align*}\]
+
+<p>Then, take partial derivative with respect to \(\theta_{A}\) and solve for \(\theta_{A}\) so that the partial derivative is equal to zero.</p>
+
+\[\begin{align*}
+\frac{\partial}{\partial\theta_{A}}\ell(\theta, \phi) &amp;= \sum_{i=1}^{m}Q_{i}(z^{(i)}) \left(\frac{x^{(i)}}{\theta_{A}} - \frac{n - x^{(i)}}{1-\theta_{A}}\right) = 0\\
+&amp;\iff \theta_{A}^{*} = \frac{\sum_{i = 1}^{m}Q_{i}(z^{(i)})x^{(i)}}{n\sum_{i = 1}^{m}Q_{i}(z^{(i)})}.
+\end{align*}\]
+
+<p>The process to finding \(\theta_{B}^{*}\) is analogous. Next, to find \(\phi\), express \(\ell(\theta, \phi)\) only in terms that contain \(\phi\)</p>
+
+\[\begin{align*}
+\ell(\theta, \phi) \propto \sum_{i=1}^{m}Q_{i}(A)\log \phi + Q_{i}(B)\log(1 - \phi)
+\end{align*}\]
+
+<p>Then, take partial derivative with respect to \(\phi\) and solve for \(\phi\) so that the partial derivative is equal to zero.</p>
+
+\[\begin{align*}
+\frac{\partial}{\partial\phi}\ell(\theta, \phi) &amp;= \sum_{i=1}^{m}\frac{Q_{i}(A)}{\phi} - \frac{Q_{i}(B)}{1 - \phi} = 0\\
+&amp;\iff \phi^{*} = \frac{\sum_{i = 1}^{m}Q_{i}(A)}{\sum_{i = 1}^{m}Q_{i}(A) + Q_{i}(B)}
+\end{align*}\]
+
+<h3 id="313-implementation">3.1.3 Implementation</h3>
+<p>Now we can implement the EM algorithm to estimate the biases of two coins given a set of coin toss results. We will first implement the EM algorithm class with the following usage:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>EM_coin(initial=(0.400, 0.600, 0.500), n = 10, convergence=0.001, verbose=False)
+</code></pre></div></div>
+
+<p>where</p>
+
+<ol>
+  <li><code class="language-plaintext highlighter-rouge">initial</code>: tuple of size three indicating initial guesses to the coin biases and coin probabilities.</li>
+  <li><code class="language-plaintext highlighter-rouge">convergence</code>: threshold of sum of differences in estimated parameters between iterations, below which the EM algorithm stops.</li>
+  <li><code class="language-plaintext highlighter-rouge">n</code>: number of coin toss trials.</li>
+  <li><code class="language-plaintext highlighter-rouge">verbose</code>: boolean indicating whether to output the estimated parameter values per iteration.</li>
+</ol>
+
+<p>To train on <code class="language-plaintext highlighter-rouge">data</code>, call</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>estimates = EM_coin.train(data)
+</code></pre></div></div>
+
+<p>where <code class="language-plaintext highlighter-rouge">data</code> is numpy array of coin toss sets, with each value indicating number of heads from one set of 10 tosses. We simulate our data with the following parameter values.</p>
+
+<ul>
+  <li>$\phi = 0.75$</li>
+  <li>$\theta_{A} = 0.25$</li>
+  <li>$\theta_{B} = 0.60$</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+
+<span class="n">phi</span> <span class="o">=</span> <span class="mf">0.75</span>
+<span class="n">thetaA</span> <span class="o">=</span> <span class="mf">0.25</span>
+<span class="n">thetaB</span> <span class="o">=</span> <span class="mf">0.60</span>
+
+<span class="n">m</span> <span class="o">=</span> <span class="mi">500</span>
+
+<span class="n">numA</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="n">binomial</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">phi</span><span class="p">)</span>
+<span class="n">numB</span> <span class="o">=</span> <span class="n">m</span> <span class="o">-</span> <span class="n">numA</span>
+
+<span class="c1"># generate coin tosses from coin A
+</span><span class="n">tossesA</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="n">binomial</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">thetaA</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numA</span><span class="p">)])</span>
+<span class="n">tossesB</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="n">binomial</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">thetaB</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numB</span><span class="p">)])</span>
+
+<span class="n">tosses</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">tossesA</span><span class="p">,</span> <span class="n">tossesB</span><span class="p">))</span>
+</code></pre></div></div>
+
+<p>Below is the algorithm implementation.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">EM_coin</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span> 
+    <span class="c1"># Set initial coin bias guesses
+</span>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="p">(</span><span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.500</span><span class="p">),</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">convergence</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> 
+                 <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">convergence</span> <span class="o">=</span> <span class="n">convergence</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">n</span> <span class="o">=</span> <span class="n">n</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">Q</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="p">{</span><span class="s">"thetaA"</span><span class="p">:</span> <span class="n">initial</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s">"thetaB"</span><span class="p">:</span> <span class="n">initial</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s">"phi"</span><span class="p">:</span> <span class="n">initial</span><span class="p">[</span><span class="mi">2</span><span class="p">]}</span>
+    
+    <span class="k">def</span> <span class="nf">likelihood</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">p</span><span class="o">**</span><span class="n">k</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">p</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="n">k</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">expectation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="n">lA</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="p">.</span><span class="n">likelihood</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">n</span><span class="p">,</span> <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"thetaA"</span><span class="p">],</span> <span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"phi"</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
+        <span class="n">lB</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="p">.</span><span class="n">likelihood</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">n</span><span class="p">,</span> <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"thetaB"</span><span class="p">],</span> <span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"phi"</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">Q</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([</span><span class="n">lA</span><span class="p">,</span> <span class="n">lB</span><span class="p">],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">float</span><span class="p">).</span><span class="n">T</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">Q</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">Q</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">Q</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">/</span> <span class="n">total</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">Q</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="p">.</span><span class="n">Q</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+    
+    <span class="k">def</span> <span class="nf">maximization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="n">thetaA_n</span><span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="p">.</span><span class="n">squeeze</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">Q</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]])</span> <span class="o">*</span> <span class="n">data</span><span class="p">)</span>
+        <span class="n">thetaA_d</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">n</span> <span class="o">*</span> <span class="n">np</span><span class="p">.</span><span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">Q</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"thetaA"</span><span class="p">]</span> <span class="o">=</span> <span class="n">thetaA_n</span> <span class="o">/</span> <span class="n">thetaA_d</span>
+        
+        <span class="n">thetaB_n</span><span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="p">.</span><span class="n">squeeze</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">Q</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">1</span><span class="p">]])</span> <span class="o">*</span> <span class="n">data</span><span class="p">)</span>
+        <span class="n">thetaB_d</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">n</span> <span class="o">*</span> <span class="n">np</span><span class="p">.</span><span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">Q</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"thetaB"</span><span class="p">]</span> <span class="o">=</span> <span class="n">thetaB_n</span> <span class="o">/</span> <span class="n">thetaB_d</span>
+        
+        <span class="n">totals</span> <span class="o">=</span>  <span class="n">np</span><span class="p">.</span><span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">Q</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
+        <span class="n">phi</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">Q</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]])</span> <span class="o">/</span> <span class="n">np</span><span class="p">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">totals</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"phi"</span><span class="p">]</span> <span class="o">=</span> <span class="n">phi</span>
+        
+    <span class="k">def</span> <span class="nf">difference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">oldParameters</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"thetaA"</span><span class="p">]</span> <span class="o">-</span> <span class="n">oldParameters</span><span class="p">[</span><span class="s">"thetaA"</span><span class="p">])</span> <span class="o">+</span>\
+                <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"thetaB"</span><span class="p">]</span> <span class="o">-</span> <span class="n">oldParameters</span><span class="p">[</span><span class="s">"thetaB"</span><span class="p">])</span> <span class="o">+</span>\
+                <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"phi"</span><span class="p">]</span> <span class="o">-</span> <span class="n">oldParameters</span><span class="p">[</span><span class="s">"phi"</span><span class="p">])</span>
+    
+    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="n">oldParameters</span> <span class="o">=</span> <span class="p">{</span><span class="s">"thetaA"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s">"thetaB"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s">"phi"</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span>
+        
+        <span class="k">while</span> <span class="bp">self</span><span class="p">.</span><span class="n">difference</span><span class="p">(</span><span class="n">oldParameters</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="p">.</span><span class="n">convergence</span><span class="p">:</span>
+            <span class="n">oldParameters</span><span class="p">[</span><span class="s">"thetaA"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"thetaA"</span><span class="p">]</span>
+            <span class="n">oldParameters</span><span class="p">[</span><span class="s">"thetaB"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"thetaB"</span><span class="p">]</span>
+            <span class="n">oldParameters</span><span class="p">[</span><span class="s">"phi"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"phi"</span><span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="p">.</span><span class="n">verbose</span><span class="p">:</span> 
+                <span class="k">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s">". "</span> <span class="o">+</span> <span class="s">" thetaA: "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"thetaA"</span><span class="p">],</span> <span class="mi">3</span><span class="p">))</span> <span class="o">+</span>\
+                      <span class="s">", thetaB: "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"thetaB"</span><span class="p">],</span> <span class="mi">3</span><span class="p">))</span> <span class="o">+</span>\
+                      <span class="s">", phi: "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"phi"</span><span class="p">],</span> <span class="mi">3</span><span class="p">)))</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">expectation</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">maximization</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span>
+</code></pre></div></div>
+
+<p>Now, let us create our dataset and train to estimate the coin biases:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">algorithmCoin</span> <span class="o">=</span> <span class="n">EM_coin</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">estimates</span> <span class="o">=</span> <span class="n">algorithmCoin</span><span class="p">.</span><span class="n">train</span><span class="p">(</span><span class="n">tosses</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"Estimates: thetaA ="</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">estimates</span><span class="p">[</span><span class="s">"thetaA"</span><span class="p">],</span> <span class="mi">3</span><span class="p">)),</span> 
+      <span class="s">"; thetaB ="</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">estimates</span><span class="p">[</span><span class="s">"thetaB"</span><span class="p">],</span> <span class="mi">3</span><span class="p">)),</span> 
+      <span class="s">"; phi ="</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">estimates</span><span class="p">[</span><span class="s">"phi"</span><span class="p">],</span> <span class="mi">3</span><span class="p">)))</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1.  thetaA: 0.4, thetaB: 0.6, phi: 0.5
+2.  thetaA: 0.258, thetaB: 0.522, phi: 0.727
+3.  thetaA: 0.245, thetaB: 0.55, phi: 0.723
+4.  thetaA: 0.241, thetaB: 0.561, phi: 0.724
+5.  thetaA: 0.241, thetaB: 0.566, phi: 0.727
+6.  thetaA: 0.241, thetaB: 0.569, phi: 0.73
+7.  thetaA: 0.242, thetaB: 0.571, phi: 0.733
+8.  thetaA: 0.242, thetaB: 0.572, phi: 0.736
+9.  thetaA: 0.243, thetaB: 0.574, phi: 0.738
+10.  thetaA: 0.243, thetaB: 0.575, phi: 0.74
+11.  thetaA: 0.244, thetaB: 0.576, phi: 0.742
+12.  thetaA: 0.244, thetaB: 0.578, phi: 0.744
+13.  thetaA: 0.245, thetaB: 0.578, phi: 0.745
+14.  thetaA: 0.245, thetaB: 0.579, phi: 0.747
+15.  thetaA: 0.245, thetaB: 0.58, phi: 0.748
+16.  thetaA: 0.245, thetaB: 0.581, phi: 0.749
+17.  thetaA: 0.246, thetaB: 0.581, phi: 0.75
+18.  thetaA: 0.246, thetaB: 0.582, phi: 0.75
+19.  thetaA: 0.246, thetaB: 0.582, phi: 0.751
+20.  thetaA: 0.246, thetaB: 0.583, phi: 0.752
+21.  thetaA: 0.246, thetaB: 0.583, phi: 0.752
+Estimates: thetaA = 0.246 ; thetaB = 0.583 ; phi = 0.753
+</code></pre></div></div>
+
+<p>The estimated parameters are \(\phi = 0.753\), \(\theta_{A} = 0.246\), and \(\theta_{B} = 0.583\), which agrees quite well with the true parameters.</p>
+
+<h2 id="32-abo-blood-group-allele-frequency-estimation">3.2 ABO blood group allele frequency estimation</h2>
+
+<p>The following example is based on that provided by UC Berkeley’s STATC245C Computational Statistics course. ABO blood groups are characterized by genotypes at the ABO locus, which has alleles A, B, and O. The mapping between unphased genotypes to blood group phenotype is provided by the following table.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">Genotype</th>
+      <th style="text-align: center">Phenotype</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">AO</td>
+      <td style="text-align: center">A</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">AA</td>
+      <td style="text-align: center">A</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">BO</td>
+      <td style="text-align: center">B</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">BB</td>
+      <td style="text-align: center">B</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">OO</td>
+      <td style="text-align: center">O</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">AB</td>
+      <td style="text-align: center">AB</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>We observe phenotypes, and we wish to estimate the frequencies of alleles A, B, and O. Under Hardy-Weinberg equilibrium at the ABO locus, maternal and paternal alleles are independent, so unphased genotype frequencies are products of allele frequencies. The unobserved complete data is \(X = \begin{bmatrix}X_{AA} &amp; X_{AO} &amp; X_{BO} &amp; X_{BB} &amp; X_{AB} &amp; X_{OO}\end{bmatrix}^{\top}\), the unphased genotypes. The observed incomplete data is \(Y = \begin{bmatrix}Y_{A} &amp; Y_{B} &amp; Y_{AB} &amp; Y_{O}\end{bmatrix}^{\top}\), the ABO phenotype. The statistical model for \(X\) is</p>
+
+\[X \sim \text{multinomial}(n, (\pi_{A}^{2}, 2\pi_{A}\pi_{O}, \pi_{B}^{2}, 2\pi_{B}\pi_{O}, 2\pi_{A}\pi_{B}, \pi_{O}^{2})),\]
+
+<p>and the model for \(Y\) is</p>
+
+\[Y \sim \text{multinomial}(n, (\pi_{A}^{2} + 2\pi_{A}\pi_{O}, \pi_{B}^{2} + 2\pi_{B}\pi_{O}, 2\pi_{A}\pi_{B}, \pi_{O}^{2})).\]
+
+<p>We wish to estimate allele frequencies \(\pi = \begin{bmatrix}\pi_{A} &amp; \pi_{B} &amp; \pi_{O}\end{bmatrix}^{\top}\). The log-likelihood of \(\pi\) with complete data is</p>
+
+\[\ell(\pi) \propto 2X_{AA}\log(\pi_{A}) + X_{AO}\log(2\pi_{A}\pi_{O}) + X_{BO}\log(2\pi_{B}\pi_{O}) + 2X_{BB}\log\pi_{B} + 2X_{OO}\pi_{O} + X_{AB}\log\pi_{AB},\]
+
+<p>which, when can be maximized with respect to \(\pi\) under the constraint \(\pi_{A} + \pi_{B} + \pi_{O} = 1\). For instance, application of Lagrange multipliers yields</p>
+
+\[\hat{\pi}_{A} = \frac{2X_{AA} + X_{AO} + X_{AB}}{2(X_{AA} + X_{AO} + X_{BB} + X_{BO} + X_{AB} + X_{OO})} = \frac{2X_{AA} + X_{AO} + X_{AB}}{2n}\]
+
+<p>In the observed incomplete data case, the log-likelihood is</p>
+
+\[\ell(\pi) \propto Y_{A}\log(\pi_{A}^{2} + 2\pi_{A}\pi_{O}) + Y_{B}\log(\pi_{B}^{2} + 2\pi_{B}\pi_{O}) + Y_{AB}\log(2\pi_{A}\pi_{B}) + 2Y_{O}\log\pi_{O}.\]
+
+<p>Additionally, we know the relationship between \(Y\) and \(X\) as follows</p>
+
+<ul>
+  <li>$Y_{A} = X_{AA} + X_{AO}$</li>
+  <li>$Y_{B} = X_{BB} + X_{BO}$</li>
+  <li>$Y_{AB} = X_{AB}$</li>
+  <li>$Y_{OO} = X_{OO}$</li>
+</ul>
+
+<h3 id="321-expectation">3.2.1 Expectation</h3>
+
+<p>Recall that in the expectation step, we set $Q(x) = p(x \lvert y; \pi)$. Then, our log-likelihood becomes</p>
+
+\[\begin{align*}
+\ell(\pi) &amp;= \log p(y; \pi)\\
+&amp;= \log \sum_{x}p(y, x; \pi)\\
+&amp;= \log \sum_{x}\frac{p(y, x; \pi)Q(x)}{Q(x)}\\
+&amp;\geq \sum_{x}Q(x)\log\frac{p(y, x; \pi)}{Q(x)}\\
+&amp;= \mathbb{E}_{x \sim Q}\left[\log \frac{p(y, x; \pi)}{Q(x)}\right]\\
+&amp;= \mathbb{E}_{x \sim Q}\left[\log p(y; \pi)\right],
+\end{align*}\]
+
+<p>where in the last line, we use the identity \(Q(x) = \frac{p(y, x; \pi)}{p(y; \pi)}\). Expressing $\ell(\pi)$ only in terms containing $\pi$ and expressing \(Y\) in terms of \(X\)</p>
+
+\[\begin{align*}
+\ell(\pi) &amp;\propto \mathbb{E}_{x \sim Q}\left[(x_{AA} + x_{AO})\log(\pi_{A}^{2} + 2\pi_{A}\pi_{O}) + (x_{BB} + x_{BO})\log(\pi_{B}^{2} + 2\pi_{B}\pi_{O}) + x_{AB}\log(2\pi_{B}\pi_{A}) + 2x_{OO}\log\pi_{O}\right]\\
+&amp;= \log(\pi_{A}^{2} + 2\pi_{A}\pi_{O})(\mathbb{E}[x_{AA} | y_{A}] + \mathbb{E}[x_{AO} | y_{A}]) + \log(\pi_{B}^{2} + 2\pi_{B}\pi_{O})(\mathbb{E}[x_{BB} | y_{B}] + \mathbb{E}[x_{BO} | y_{B}]) + \\
+&amp;\quad\mathbb{E}[x_{AB} | y_{AB}]\log(2\pi_{B}\pi_{A}) + 2\mathbb{E}[x_{OO} | y_{OO}]\log\pi_{O}.\\
+\end{align*}\]
+
+<p>For above, we also apply independence assumptions between terms in $X$ and terms in $Y$. For example, $\mathbb{E}[x_{AA} \lvert y_{A}, y_{B}, y_{AB}, y_{O}] = \mathbb{E}[x_{AA} \lvert y_{A}]$ because $X_{AA}$ only has a dependency on $Y_{A}$. It remains to find the expectation terms. For a multinomial distribution, the conditional distribution is</p>
+
+\[\begin{align*}
+p(X_{k} = x | X_{k} + X_{k^{\prime}} = y) &amp;= \frac{p(X_{k} = x, X_{k^{\prime}} = y - x)}{p(X_{k} + X_{k^{\prime}} = y)}\\
+&amp;= \frac{\frac{n!}{x!(y - x)!(n - y)!}\pi_{k}^{x}\pi_{k^{\prime}}^{y - x}(1 - \pi_{k} - \pi_{k^{\prime}})^{n - y}}{\frac{n!}{y!(n - y)!}(\pi_{k} + \pi_{k^{\prime}})^{y}(1 - \pi_{k} - \pi_{k^{\prime}})^{n - y}}\\
+&amp;= \frac{y!}{x!(y - x)!}\left(\frac{\pi_{k}}{\pi_{k} + \pi_{k^{\prime}}}\right)^{x}\left(\frac{\pi_{k^{\prime}}}{\pi_{k} + \pi_{k^{\prime}}}\right)^{y - x}\\
+&amp;\implies X_{k} | X_{k} + X_{k^{\prime}} = y \sim \text{binomial}\left(y, \frac{\pi_{k}}{\pi_{k} + \pi_{k^{\prime}}}\right),
+\end{align*}\]
+
+<p>which means \(\mathbb{E}[X_{k} \lvert X_{k} + X_{k^{\prime}} = y] = y\frac{\pi_{k}}{\pi_{k} + \pi_{k^{\prime}}}\). Applying this expectation we get</p>
+
+\[\begin{align*}
+\ell(\pi) &amp;\propto y_{A}\log(\pi_{A}^{2} + 2\pi_{A}\pi_{O}) + y_{B}\log(\pi_{B}^{2} + 2\pi_{B}\pi_{O}) + y_{AB}\log(2\pi_{B}\pi_{A}) + 2y_{OO}\log \pi_{O}.
+\end{align*}\]
+
+<h3 id="322-maximization">3.2.2 Maximization</h3>
+
+<p>We solve the following constrained optimization problem</p>
+
+\[\begin{align*}
+\max_{\pi}\:&amp;\ell(\pi)\\
+\sum_{i \in \{A, B, O\}}\pi_{i} &amp;= 1\\
+\end{align*}\]
+
+<p>with method of Lagrangian multipliers, which leads to solving the following system of equations:</p>
+
+\[\begin{align*}
+\frac{\partial \ell(\pi)}{\partial \pi_{A}} &amp;= 2y_{A}\frac{\pi_{A} + \pi_{O}}{\pi_{A}^{2} + 2\pi_{A}\pi_{O}} + \frac{y_{AB}}{\pi_{A}} = \lambda\\
+\frac{\partial \ell(\pi)}{\partial \pi_{B}} &amp;= 2y_{B}\frac{\pi_{B} + \pi_{O}}{\pi_{B}^{2} + 2\pi_{B}\pi_{O}} +  \frac{y_{AB}}{\pi_{B}} = \lambda\\
+\frac{\partial \ell(\pi)}{\partial \pi_{O}} &amp;= \frac{2y_{A}\pi_{A}}{\pi_{A}^{2} + 2\pi_{A}\pi_{O}} + \frac{2y_{B}\pi_{B}}{\pi_{B}^{2} + 2\pi_{B}\pi_{O}} + \frac{2y_{O}}{\pi_{O}} = \lambda\\
+\sum_{i \in \{A, B, O\}}\pi_{i} &amp;= 1
+\end{align*}\]
+
+<p>Multiply the first three equations by \(\pi_{A}\), \(\pi_{B}\), and \(\pi_{O}\) respectively, to get</p>
+
+\[\begin{align*}
+\pi_{A} &amp;= \frac{2y_{A}\frac{\pi_{A}^{2}}{\pi_{A}^{2} + 2\pi_{A}\pi_{O}} + y_{A}\frac{2\pi_{A}\pi_{O}}{\pi_{A}^{2} + 2\pi_{A}\pi_{O}} + y_{AB}}{\lambda}\\
+\pi_{B} &amp;= \frac{2y_{B}\frac{\pi_{B}^{2}}{\pi_{B}^{2} + 2\pi_{B}\pi_{O}} + y_{B}\frac{2\pi_{B}\pi_{O}}{\pi_{B}^{2} + 2\pi_{B}\pi_{O}} + y_{AB}}{\lambda}\\
+\pi_{O} &amp;= \frac{y_{A}\frac{2\pi_{A}\pi_{O}}{\pi_{A}^{2} + 2\pi_{A}\pi_{O}} + y_{B}\frac{2\pi_{B}\pi_{O}}{\pi_{B}^{2} + 2\pi_{B}\pi_{O}} + 2y_{O}}{\lambda}.
+\end{align*}\]
+
+<p>From \(\pi_{A} + \pi_{B} + \pi_{O} = 1\), we multiply both sides by $\lambda$ to get \(\lambda = 2n\). Next, on the right side notice the numerator terms contain expectations already calculated in the expectation step. Thus, simply substitute those values to get</p>
+
+\[\begin{align*}
+\hat{\pi}_{A} &amp;= \frac{2\mathbb{E}[X_{AA} | Y_{A}] + \mathbb{E}[X_{AO} | Y_{A}] + \mathbb{E}[X_{AB} | Y_{AB}]}{2n}\\
+\hat{\pi}_{B} &amp;= \frac{2\mathbb{E}[X_{BB} | Y_{B}] + \mathbb{E}[X_{BO} | Y_{B}] + \mathbb{E}[X_{AB} | Y_{AB}]}{2n}\\
+\hat{\pi}_{O} &amp;= \frac{\mathbb{E}[X_{AO}|Y_{A}] + \mathbb{E}[X_{BO} | Y_{B}] + 2\mathbb{E}[X_{OO} | Y_{O}]}{2n}.
+\end{align*}\]
+
+<h3 id="323-implementation">3.2.3 Implementation</h3>
+
+<p>Now we can implement the EM algorithm to estimate allele frequencies. We will first implement the EM algorithm class with the following usage:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>EM_ABO(initial=(0.500, 0.500, 0.500), convergence=0.001, verbose=False)
+</code></pre></div></div>
+
+<p>where</p>
+
+<ol>
+  <li><code class="language-plaintext highlighter-rouge">initial</code>: tuple of size three indicating initial guesses to the coin biases and coin probabilities.</li>
+  <li><code class="language-plaintext highlighter-rouge">convergence</code>: threshold of sum of differences in estimated parameters between iterations, below which the EM algorithm stops.</li>
+  <li><code class="language-plaintext highlighter-rouge">verbose</code>: boolean indicating whether to output the estimated parameter values per iteration.</li>
+</ol>
+
+<p>To train on <code class="language-plaintext highlighter-rouge">data</code>, call</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>estimates = EM_ABO.train(data)
+</code></pre></div></div>
+
+<p>where <code class="language-plaintext highlighter-rouge">data</code> is numpy array of observed phenotype \(Y = \begin{bmatrix}Y_{A} &amp; Y_{B} &amp; Y_{AB} &amp; Y_{O}\end{bmatrix}^{\top}\). We take phenotype counts from Table III from Clarke \(\textit{et al}.\) [3]. The data is reproduced below:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">Phenotype</th>
+      <th style="text-align: center">Count</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">A</td>
+      <td style="text-align: center">186</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">B</td>
+      <td style="text-align: center">38</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">AB</td>
+      <td style="text-align: center">13</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">O</td>
+      <td style="text-align: center">284</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">EM_ABO</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span> 
+    <span class="c1"># Set initial coin bias guesses
+</span>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">),</span> <span class="n">convergence</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">convergence</span> <span class="o">=</span> <span class="n">convergence</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="p">{</span><span class="s">"pA"</span><span class="p">:</span> <span class="n">initial</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s">"pB"</span><span class="p">:</span> <span class="n">initial</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s">"pO"</span><span class="p">:</span> <span class="n">initial</span><span class="p">[</span><span class="mi">2</span><span class="p">]}</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">expectations</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">6</span><span class="p">,))</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">n</span> <span class="o">=</span> <span class="bp">None</span>
+    
+    <span class="k">def</span> <span class="nf">expectation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="n">denom1</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"pA"</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"pA"</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"pO"</span><span class="p">]</span>
+        <span class="n">denom2</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"pB"</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"pB"</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"pO"</span><span class="p">]</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">expectations</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"pA"</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">denom1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">expectations</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">((</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"pA"</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"pO"</span><span class="p">])</span> <span class="o">/</span> <span class="n">denom1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">expectations</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"pB"</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="n">denom2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">expectations</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">((</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"pB"</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"pO"</span><span class="p">])</span> <span class="o">/</span> <span class="n">denom2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">expectations</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">expectations</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    
+    <span class="k">def</span> <span class="nf">maximization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"pA"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="p">.</span><span class="n">expectations</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="p">.</span><span class="n">expectations</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="p">.</span><span class="n">expectations</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="p">.</span><span class="n">n</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"pB"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="p">.</span><span class="n">expectations</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="p">.</span><span class="n">expectations</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="p">.</span><span class="n">expectations</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="p">.</span><span class="n">n</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"pO"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">expectations</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="p">.</span><span class="n">expectations</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="p">.</span><span class="n">expectations</span><span class="p">[</span><span class="mi">5</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="p">.</span><span class="n">n</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">difference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">oldParameters</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"pA"</span><span class="p">]</span> <span class="o">-</span> <span class="n">oldParameters</span><span class="p">[</span><span class="s">"pA"</span><span class="p">])</span> <span class="o">+</span>\
+                <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"pB"</span><span class="p">]</span> <span class="o">-</span> <span class="n">oldParameters</span><span class="p">[</span><span class="s">"pB"</span><span class="p">])</span> <span class="o">+</span>\
+                <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"pO"</span><span class="p">]</span> <span class="o">-</span> <span class="n">oldParameters</span><span class="p">[</span><span class="s">"pO"</span><span class="p">])</span>
+    
+    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">oldParameters</span> <span class="o">=</span> <span class="p">{</span><span class="s">"pA"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s">"pB"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s">"pO"</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span>
+        
+        <span class="k">while</span> <span class="bp">self</span><span class="p">.</span><span class="n">difference</span><span class="p">(</span><span class="n">oldParameters</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="p">.</span><span class="n">convergence</span><span class="p">:</span>
+            <span class="n">oldParameters</span><span class="p">[</span><span class="s">"pA"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"pA"</span><span class="p">]</span>
+            <span class="n">oldParameters</span><span class="p">[</span><span class="s">"pB"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"pB"</span><span class="p">]</span>
+            <span class="n">oldParameters</span><span class="p">[</span><span class="s">"pO"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"pO"</span><span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="p">.</span><span class="n">verbose</span><span class="p">:</span> 
+                <span class="k">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s">". "</span> <span class="o">+</span> <span class="s">" pA: "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"pA"</span><span class="p">],</span> <span class="mi">3</span><span class="p">))</span> <span class="o">+</span>\
+                      <span class="s">", pB: "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"pB"</span><span class="p">],</span> <span class="mi">3</span><span class="p">))</span> <span class="o">+</span>\
+                      <span class="s">", pO: "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s">"pO"</span><span class="p">],</span> <span class="mi">3</span><span class="p">)))</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">expectation</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">maximization</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="p">.</span><span class="n">parameters</span>
+</code></pre></div></div>
+
+<p>Run the algorithm on data</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([</span><span class="mi">186</span><span class="p">,</span> <span class="mi">38</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">284</span><span class="p">])</span>
+<span class="n">em_abo</span> <span class="o">=</span> <span class="n">EM_ABO</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">estimates</span> <span class="o">=</span> <span class="n">em_abo</span><span class="p">.</span><span class="n">train</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1.  pA: 0.333, pB: 0.333, pO: 0.333
+2.  pA: 0.25, pB: 0.061, pO: 0.688
+3.  pA: 0.218, pB: 0.05, pO: 0.731
+4.  pA: 0.214, pB: 0.05, pO: 0.736
+5.  pA: 0.214, pB: 0.05, pO: 0.736
+</code></pre></div></div>
+
+<p>The estimated allele frequencies are \(\pi_{A} = 0.214\), \(p_{B} = 0.05\), and \(p_{O} = 0.736\).</p>
+
+<h2 id="reference">Reference</h2>
+<ol>
+  <li>Ng, Andrew. “CS229 Lecture notes.” CS229 Lecture notes 1.1 (2000): 1-3.</li>
+  <li>Do, Chuong B., and Serafim Batzoglou. “What is the expectation maximization algorithm?.” Nature biotechnology 26.8 (2008): 897-899.</li>
+  <li>Clarke, C. A., et al. “Secretion of blood group antigens and peptic ulcer.” British medical journal 1.5122 (1959): 603.</li>
+</ol>
+:ET
