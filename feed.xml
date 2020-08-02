@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.1.1">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-08-01T18:16:09-07:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Calvin Chi</title><subtitle>Calvin Chi's personal website.
+</subtitle><entry><title type="html">Expectation-Maximization Algorithm</title><link href="http://localhost:4000/statistics/2020/08/01/EM-Algorithm.html" rel="alternate" type="text/html" title="Expectation-Maximization Algorithm" /><published>2020-08-01T00:00:00-07:00</published><updated>2020-08-01T00:00:00-07:00</updated><id>http://localhost:4000/statistics/2020/08/01/EM-Algorithm</id><content type="html" xml:base="http://localhost:4000/statistics/2020/08/01/EM-Algorithm.html">&lt;script src=&quot;https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML&quot; type=&quot;text/javascript&quot;&gt;&lt;/script&gt;
+
+&lt;h1 id=&quot;1-motivation&quot;&gt;1. Motivation&lt;/h1&gt;
+
+&lt;p&gt;The standard maximum likelihood estimation (MLE) problem solves for&lt;/p&gt;
+
+\[\theta^{*} = \arg \max_{\theta}\ell(\theta),\]
+
+&lt;p&gt;the parameter that maximizes the log-likelihood of observed data \(\ell(\theta)\), given a statistical model. However, in incomplete data scenarios with unobserved latent variable $Z$, simultaneously solving for $z, \theta$ to maximize the log-likelihood $\ell(\theta, z)$ can be impossible. Conversely, if $z$ were observed, the estimation problem would be easily solvable.&lt;/p&gt;
+
+&lt;p&gt;The expectation-maximization (EM) algorithm is a method to solve for a local maximum likelihood estimate of $\theta$ numerically in incomplete data scenarios, alternating maximization between the two sets of unknowns, keeping the other set fixed. This idea is also known as coordinate ascent.&lt;/p&gt;
+
+&lt;h1 id=&quot;2-algorithm&quot;&gt;2. Algorithm&lt;/h1&gt;
+
+&lt;p&gt;The following presentation is largely based on the notes written by Andrew Ng [1]. Given a dataset of ${x^{(1)},…,x^{(m)}}$ of $m$ independent samples, the log-likelihood is given by&lt;/p&gt;
+
+\[\ell(\theta) = \sum_{i = 1}^{m}\log p(x^{(i)}; \theta) = \sum_{i = 1}^{m}\log \sum_{z}p(x^{(i)}, z^{(i)}; \theta),\]
+
+&lt;p&gt;where $Z$ is an unknown discrete random variable ($z$’s are outcome values). Now for any distribution $z^{(i)} \sim Q_{i}$ (i.e. $Q_{i}(z^{(i)})$), we can further rewrite $\ell(\theta)$&lt;/p&gt;
+
+\[\begin{align*}
+\ell(\theta) &amp;amp;= \sum_{i = 1}^{m}\log \sum_{z^{(i)}}p(x^{(i)}, z^{(i)}; \theta)\\
+&amp;amp;= \sum_{i=1}^{m}\log\sum_{z^{(i)}}Q_{i}(z^{(i)})\frac{p(x^{(i)}, z^{(i)};\theta)}{Q_{i}(z^{(i)})}\\
+&amp;amp;\geq \sum_{i=1}^{m}\sum_{z^{(i)}}Q_{i}(z^{(i)})\log\frac{p(x^{(i)}, z^{(i)};\theta)}{Q_{i}(z^{(i)})}.
+\end{align*}\]
+
+&lt;p&gt;The inequality above is due to Jensen’s inequality applied to concave functions. Jensen’s inequality states that for a convex function $f$ and random variable $X$, the following inequality $\mathbb{E}[f(X)] \geq f(\mathbb{E}[X])$ is true. One way to easily recall the direction of inequality is using the variance formula $Var(X) = \mathbb{E}[X^{2}] - \mathbb{E}[X]^{2} \geq 0 \iff \mathbb{E}[X^{2}] \geq \mathbb{E}[X]^{2}$, where $f(x) = x^{2}$ is a convex function.&lt;/p&gt;
+
+&lt;p&gt;Now the expectation and maximization steps can be derived. The expectation step considers current $\theta$ value fixed and sets $Q_{i}(z^{(i)})$ so that the inequality above becomes equality. Start by noticing that&lt;/p&gt;
+
+\[\log\sum_{z^{(i)}}\frac{p(z^{(i)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})}Q_{i}(z^{(i)}) = g\Big(\mathbb{E}\Big[\frac{p(z^{(j)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})}\Big]\Big)\]
+
+&lt;p&gt;and&lt;/p&gt;
+
+\[\sum_{z^{(i)}}Q_{i}(z^{(i)})\log\frac{p(z^{(i)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})} = 
+\mathbb{E}\Big[g\left(\frac{p(z^{(i)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})}\right)\Big],\]
+
+&lt;p&gt;which are summation terms to the left and right of the inequality respectively. Jensen’s inequality for concave functions state $g\Big(\mathbb{E}\Big[\frac{p(z^{(j)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})}\Big]\Big) \geq \mathbb{E}\Big[g\left(\frac{p(z^{(i)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})}\right)\Big]$. It is easy to see that in order for equality to be achieved, $\frac{p(z^{(j)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})} = c$ for some constant $c$, since $g(\mathbb{E}[c]) = g(c) = \mathbb{E}[g(c)]$. Choosing $Q_{i}(z^{(i)}) \propto p(x^{(i)}, z^{(i)}; \theta)$ is sufficient to achieve constant value. For $Q_{i}$ to remain a probability distribution, set&lt;/p&gt;
+
+\[\begin{align*}
+Q_{i}(z^{(i)}) &amp;amp;= \frac{p(x^{(i)}, z^{(i)};\theta)}{\sum_{z^{(i)}}p(x^{(i)}, z^{(i)};\theta)}\\
+&amp;amp;=\frac{p(x^{(i)}, z^{(i)};\theta)}{p(x^{(i)};\theta)}\\
+&amp;amp;=p(z^{(i)}|x^{(i)};\theta),
+\end{align*}\]
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;numpy&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;phi&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;0.75&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;thetaA&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;0.25&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;thetaB&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;0.60&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;m&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;500&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;numA&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;binomial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;phi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;numB&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;numA&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;# generate coin tosses from coin A
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tossesA&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;binomial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;thetaA&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;numA&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)])&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;tossesB&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;binomial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;thetaB&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;numB&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)])&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;tosses&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;concatenate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tossesA&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tossesB&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;algorithmCoin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;EM_coin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;verbose&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;estimates&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;algorithmCoin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;train&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tosses&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Estimates: thetaA =&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;round&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;estimates&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;thetaA&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)),&lt;/span&gt; 
+      &lt;span class=&quot;s&quot;&gt;&quot;; thetaB =&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;round&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;estimates&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;thetaB&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)),&lt;/span&gt; 
+      &lt;span class=&quot;s&quot;&gt;&quot;; phi =&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;round&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;estimates&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;phi&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)))&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;1.  thetaA: 0.4, thetaB: 0.6, phi: 0.5
+2.  thetaA: 0.258, thetaB: 0.522, phi: 0.727
+3.  thetaA: 0.245, thetaB: 0.55, phi: 0.723
+4.  thetaA: 0.241, thetaB: 0.561, phi: 0.724
+5.  thetaA: 0.241, thetaB: 0.566, phi: 0.727
+6.  thetaA: 0.241, thetaB: 0.569, phi: 0.73
+7.  thetaA: 0.242, thetaB: 0.571, phi: 0.733
+8.  thetaA: 0.242, thetaB: 0.572, phi: 0.736
+9.  thetaA: 0.243, thetaB: 0.574, phi: 0.738
+10.  thetaA: 0.243, thetaB: 0.575, phi: 0.74
+11.  thetaA: 0.244, thetaB: 0.576, phi: 0.742
+12.  thetaA: 0.244, thetaB: 0.578, phi: 0.744
+13.  thetaA: 0.245, thetaB: 0.578, phi: 0.745
+14.  thetaA: 0.245, thetaB: 0.579, phi: 0.747
+15.  thetaA: 0.245, thetaB: 0.58, phi: 0.748
+16.  thetaA: 0.245, thetaB: 0.581, phi: 0.749
+17.  thetaA: 0.246, thetaB: 0.581, phi: 0.75
+18.  thetaA: 0.246, thetaB: 0.582, phi: 0.75
+19.  thetaA: 0.246, thetaB: 0.582, phi: 0.751
+20.  thetaA: 0.246, thetaB: 0.583, phi: 0.752
+21.  thetaA: 0.246, thetaB: 0.583, phi: 0.752
+Estimates: thetaA = 0.246 ; thetaB = 0.583 ; phi = 0.753
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;You’ll find this post in your &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;_posts&lt;/code&gt; directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jekyll serve&lt;/code&gt;, which launches a web server and auto-regenerates your site when a file is updated.&lt;/p&gt;
+
+&lt;p&gt;Jekyll requires blog post files to be named according to the following format:&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;YEAR-MONTH-DAY-title.MARKUP&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Where &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;YEAR&lt;/code&gt; is a four-digit number, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MONTH&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DAY&lt;/code&gt; are both two-digit numbers, and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MARKUP&lt;/code&gt; is the file extension representing the format used in the file. After that, include the necessary front matter. Take a look at the source for this post to get an idea about how it works.&lt;/p&gt;
+
+&lt;p&gt;Jekyll also offers powerful support for code snippets:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;print_hi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;nb&quot;&gt;puts&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Hi, &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;#{&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;print_hi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'Tom'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;#=&amp;gt; prints 'Hi, Tom' to STDOUT.&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Check out the &lt;a href=&quot;https://jekyllrb.com/docs/home&quot;&gt;Jekyll docs&lt;/a&gt; for more info on how to get the most out of Jekyll. File all bugs/feature requests at &lt;a href=&quot;https://github.com/jekyll/jekyll&quot;&gt;Jekyll’s GitHub repo&lt;/a&gt;. If you have questions, you can ask them on &lt;a href=&quot;https://talk.jekyllrb.com/&quot;&gt;Jekyll Talk&lt;/a&gt;.&lt;/p&gt;</content><author><name></name></author><category term="statistics" /><summary type="html"></summary></entry><entry><title type="html">Welcome to Jekyll!</title><link href="http://localhost:4000/jekyll/update/2020/07/31/welcome-to-jekyll.html" rel="alternate" type="text/html" title="Welcome to Jekyll!" /><published>2020-07-31T23:53:04-07:00</published><updated>2020-07-31T23:53:04-07:00</updated><id>http://localhost:4000/jekyll/update/2020/07/31/welcome-to-jekyll</id><content type="html" xml:base="http://localhost:4000/jekyll/update/2020/07/31/welcome-to-jekyll.html">&lt;script src=&quot;https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML&quot; type=&quot;text/javascript&quot;&gt;&lt;/script&gt;
+
+&lt;h1 id=&quot;1-motivation&quot;&gt;1. Motivation&lt;/h1&gt;
+
+&lt;p&gt;The standard maximum likelihood estimation (MLE) problem solves for&lt;/p&gt;
+
+\[\theta^{*} = \arg \max_{\theta}\ell(\theta),\]
+
+&lt;p&gt;the parameter that maximizes the log-likelihood of observed data \(\ell(\theta)\), given a statistical model. However, in incomplete data scenarios with unobserved latent variable $Z$, simultaneously solving for $z, \theta$ to maximize the log-likelihood $\ell(\theta, z)$ can be impossible. Conversely, if $z$ were observed, the estimation problem would be easily solvable.&lt;/p&gt;
+
+&lt;p&gt;The expectation-maximization (EM) algorithm is a method to solve for a local maximum likelihood estimate of $\theta$ numerically in incomplete data scenarios, alternating maximization between the two sets of unknowns, keeping the other set fixed. This idea is also known as coordinate ascent.&lt;/p&gt;
+
+&lt;h1 id=&quot;2-algorithm&quot;&gt;2. Algorithm&lt;/h1&gt;
+
+&lt;p&gt;The following presentation is largely based on the notes written by Andrew Ng [1]. Given a dataset of ${x^{(1)},…,x^{(m)}}$ of $m$ independent samples, the log-likelihood is given by&lt;/p&gt;
+
+\[\ell(\theta) = \sum_{i = 1}^{m}\log p(x^{(i)}; \theta) = \sum_{i = 1}^{m}\log \sum_{z}p(x^{(i)}, z^{(i)}; \theta),\]
+
+&lt;p&gt;where $Z$ is an unknown discrete random variable ($z$’s are outcome values). Now for any distribution $z^{(i)} \sim Q_{i}$ (i.e. $Q_{i}(z^{(i)})$), we can further rewrite $\ell(\theta)$&lt;/p&gt;
+
+\[\begin{align*}
+\ell(\theta) &amp;amp;= \sum_{i = 1}^{m}\log \sum_{z^{(i)}}p(x^{(i)}, z^{(i)}; \theta)\\
+&amp;amp;= \sum_{i=1}^{m}\log\sum_{z^{(i)}}Q_{i}(z^{(i)})\frac{p(x^{(i)}, z^{(i)};\theta)}{Q_{i}(z^{(i)})}\\
+&amp;amp;\geq \sum_{i=1}^{m}\sum_{z^{(i)}}Q_{i}(z^{(i)})\log\frac{p(x^{(i)}, z^{(i)};\theta)}{Q_{i}(z^{(i)})}.
+\end{align*}\]
+
+&lt;p&gt;The inequality above is due to Jensen’s inequality applied to concave functions. Jensen’s inequality states that for a convex function $f$ and random variable $X$, the following inequality $\mathbb{E}[f(X)] \geq f(\mathbb{E}[X])$ is true. One way to easily recall the direction of inequality is using the variance formula $Var(X) = \mathbb{E}[X^{2}] - \mathbb{E}[X]^{2} \geq 0 \iff \mathbb{E}[X^{2}] \geq \mathbb{E}[X]^{2}$, where $f(x) = x^{2}$ is a convex function.&lt;/p&gt;
+
+&lt;p&gt;Now the expectation and maximization steps can be derived. The expectation step considers current $\theta$ value fixed and sets $Q_{i}(z^{(i)})$ so that the inequality above becomes equality. Start by noticing that&lt;/p&gt;
+
+\[\log\sum_{z^{(i)}}\frac{p(z^{(i)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})}Q_{i}(z^{(i)}) = g\Big(\mathbb{E}\Big[\frac{p(z^{(j)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})}\Big]\Big)\]
+
+&lt;p&gt;and&lt;/p&gt;
+
+\[\sum_{z^{(i)}}Q_{i}(z^{(i)})\log\frac{p(z^{(i)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})} = 
+\mathbb{E}\Big[g\left(\frac{p(z^{(i)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})}\right)\Big],\]
+
+&lt;p&gt;which are summation terms to the left and right of the inequality respectively. Jensen’s inequality for concave functions state $g\Big(\mathbb{E}\Big[\frac{p(z^{(j)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})}\Big]\Big) \geq \mathbb{E}\Big[g\left(\frac{p(z^{(i)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})}\right)\Big]$. It is easy to see that in order for equality to be achieved, $\frac{p(z^{(j)}, x^{(i)};\theta)}{Q_{i}(z^{(i)})} = c$ for some constant $c$, since $g(\mathbb{E}[c]) = g(c) = \mathbb{E}[g(c)]$. Choosing $Q_{i}(z^{(i)}) \propto p(x^{(i)}, z^{(i)}; \theta)$ is sufficient to achieve constant value. For $Q_{i}$ to remain a probability distribution, set&lt;/p&gt;
+
+\[\begin{align*}
+Q_{i}(z^{(i)}) &amp;amp;= \frac{p(x^{(i)}, z^{(i)};\theta)}{\sum_{z^{(i)}}p(x^{(i)}, z^{(i)};\theta)}\\
+&amp;amp;=\frac{p(x^{(i)}, z^{(i)};\theta)}{p(x^{(i)};\theta)}\\
+&amp;amp;=p(z^{(i)}|x^{(i)};\theta),
+\end{align*}\]
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;numpy&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;phi&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;0.75&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;thetaA&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;0.25&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;thetaB&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;0.60&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;m&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;500&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;numA&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;binomial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;phi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;numB&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;numA&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;# generate coin tosses from coin A
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tossesA&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;binomial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;thetaA&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;numA&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)])&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;tossesB&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;binomial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;thetaB&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;numB&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)])&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;tosses&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;concatenate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tossesA&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tossesB&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;algorithmCoin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;EM_coin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;verbose&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;estimates&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;algorithmCoin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;train&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tosses&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Estimates: thetaA =&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;round&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;estimates&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;thetaA&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)),&lt;/span&gt; 
+      &lt;span class=&quot;s&quot;&gt;&quot;; thetaB =&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;round&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;estimates&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;thetaB&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)),&lt;/span&gt; 
+      &lt;span class=&quot;s&quot;&gt;&quot;; phi =&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;round&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;estimates&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;phi&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)))&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;1.  thetaA: 0.4, thetaB: 0.6, phi: 0.5
+2.  thetaA: 0.258, thetaB: 0.522, phi: 0.727
+3.  thetaA: 0.245, thetaB: 0.55, phi: 0.723
+4.  thetaA: 0.241, thetaB: 0.561, phi: 0.724
+5.  thetaA: 0.241, thetaB: 0.566, phi: 0.727
+6.  thetaA: 0.241, thetaB: 0.569, phi: 0.73
+7.  thetaA: 0.242, thetaB: 0.571, phi: 0.733
+8.  thetaA: 0.242, thetaB: 0.572, phi: 0.736
+9.  thetaA: 0.243, thetaB: 0.574, phi: 0.738
+10.  thetaA: 0.243, thetaB: 0.575, phi: 0.74
+11.  thetaA: 0.244, thetaB: 0.576, phi: 0.742
+12.  thetaA: 0.244, thetaB: 0.578, phi: 0.744
+13.  thetaA: 0.245, thetaB: 0.578, phi: 0.745
+14.  thetaA: 0.245, thetaB: 0.579, phi: 0.747
+15.  thetaA: 0.245, thetaB: 0.58, phi: 0.748
+16.  thetaA: 0.245, thetaB: 0.581, phi: 0.749
+17.  thetaA: 0.246, thetaB: 0.581, phi: 0.75
+18.  thetaA: 0.246, thetaB: 0.582, phi: 0.75
+19.  thetaA: 0.246, thetaB: 0.582, phi: 0.751
+20.  thetaA: 0.246, thetaB: 0.583, phi: 0.752
+21.  thetaA: 0.246, thetaB: 0.583, phi: 0.752
+Estimates: thetaA = 0.246 ; thetaB = 0.583 ; phi = 0.753
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;You’ll find this post in your &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;_posts&lt;/code&gt; directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jekyll serve&lt;/code&gt;, which launches a web server and auto-regenerates your site when a file is updated.&lt;/p&gt;
+
+&lt;p&gt;Jekyll requires blog post files to be named according to the following format:&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;YEAR-MONTH-DAY-title.MARKUP&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Where &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;YEAR&lt;/code&gt; is a four-digit number, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MONTH&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DAY&lt;/code&gt; are both two-digit numbers, and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MARKUP&lt;/code&gt; is the file extension representing the format used in the file. After that, include the necessary front matter. Take a look at the source for this post to get an idea about how it works.&lt;/p&gt;
+
+&lt;p&gt;Jekyll also offers powerful support for code snippets:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;print_hi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;nb&quot;&gt;puts&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Hi, &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;#{&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;print_hi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'Tom'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;#=&amp;gt; prints 'Hi, Tom' to STDOUT.&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Check out the &lt;a href=&quot;https://jekyllrb.com/docs/home&quot;&gt;Jekyll docs&lt;/a&gt; for more info on how to get the most out of Jekyll. File all bugs/feature requests at &lt;a href=&quot;https://github.com/jekyll/jekyll&quot;&gt;Jekyll’s GitHub repo&lt;/a&gt;. If you have questions, you can ask them on &lt;a href=&quot;https://talk.jekyllrb.com/&quot;&gt;Jekyll Talk&lt;/a&gt;.&lt;/p&gt;</content><author><name></name></author><category term="jekyll" /><category term="update" /><summary type="html"></summary></entry></feed>
