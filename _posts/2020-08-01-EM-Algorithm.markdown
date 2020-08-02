@@ -539,7 +539,7 @@ estimates = em_abo.train(data)
 
 The estimated allele frequencies are $$\pi_{A} = 0.214$$, $$p_{B} = 0.05$$, and $$p_{O} = 0.736$$. 
 
-# Reference
+## Reference
 1. Ng, Andrew. "CS229 Lecture notes." CS229 Lecture notes 1.1 (2000): 1-3.
 2. Do, Chuong B., and Serafim Batzoglou. "What is the expectation maximization algorithm?." Nature biotechnology 26.8 (2008): 897-899.
 3. Clarke, C. A., et al. "Secretion of blood group antigens and peptic ulcer." British medical journal 1.5122 (1959): 603.
