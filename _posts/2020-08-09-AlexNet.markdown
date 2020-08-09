@@ -390,7 +390,7 @@ plot_portraits(run_kernels1, 7, 7, 1, 8)
 ![png]({{site.baseurl}}/assets/img/AlexNet_files/AlexNet_28_0.png)
 
 
-# References
+## References
 
 1. A. Krizhevsky, I. Sutskever, and G. E. Hinton, "Imagenet classification with deep convolutional neural networks," in Advances in neural information processing systems, pp. 1097-1105, 2012.
 2. Krizhevsky, Alex, and Geoffrey Hinton. "Learning multiple layers of features from tiny images." (2009): 7.
