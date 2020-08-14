@@ -1,0 +1,411 @@
+---
+layout: post
+title:  "word2vec"
+date:   2020-08-13
+categories: NLP
+---
+
+## 1. Motivation
+
+This notebook is largely based on the paper [Distributed Representations of Words and Phrases and their Compositionality](https://papers.nips.cc/paper/5021-distributed-representations-of-words-and-phrases-and-their-compositionality.pdf) [1]. A few high level notes and tips from the paper include:
+
++ The Skip-gram architecture in Figure 1 of Mikolov _et_ _at_. actually only involves training of two matrices - the input and output matrices. The Skip-gram architecture does not involve a separate output matrix for each output context word. Rather, Skip-Gram model dictates how an input word is paired output words that are in its context.
++ Since the Skip-gram model fits a one-to-many mapping of words, the point is not to get any particular mapping between a pair of words correct, but rather to use this fitting procedure to fit a good input word matrix whose columns (or rows) are vector representations of words that capture syntactic or semantic word relationships.
++ The Skip-gram model assumes distributional hypothesis, which assumes that a word's syntactic or semantic meaning is correlated with the type of words it is surrounded by.
++ Larger context window $\pm m$ results in more training examples and thus can lead to a higher accuracy, at the expense of the training time.
++ The Skip-gram model presented by Mikolov _et_ _at_. is called word2vec.
+
+## 2. Dataset
+
+```python
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import OneHotEncoder
+from nltk.corpus import stopwords
+from collections import Counter
+import math
+import string
+import pandas as pd
+import numpy as np
+```
+
+We will train word2vec using [IMDB movie review dataset](https://www.kaggle.com/lakshmi25npathi/imdb-dataset-of-50k-movie-reviews/data). Standard cleaning steps for the text dataset is adopted from this [tutorial](https://machinelearningmastery.com/develop-word-embedding-model-predicting-movie-review-sentiment/).
+
++ Remove punctuations:
+```
+!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~
+```
++ Remove characters not alphabetic.
++ Remove stop words from [nltk](https://www.nltk.org/). Stop words usually are most common words in a language filtered out before natural language processing. 
++ Remove tokens, or fundamental units of text, with length one.
+
+Mikolov _et_ _at_. removed some frequent words from the text, since frequent words provide less information value than rare words. To implement this, each words $w_{i}$ in training is discarded with probability 
+
+$$P(w_{i}) = 1 - \sqrt{\frac{t}{f(w_{i})}},$$
+
+where $f(w_{i})$ is frequency of word $w_{i}$, and $t$ is a chosen threshold, set to $10^{-5}$ in the paper. Another data preprocessing task from Mikolov _et_ _at_. is removing all words that occured less than 5 times. 
+
+
+```python
+# load doc into memory
+def load_doc(filename, directory = "data/"):
+    # open the file as read only
+    data = pd.read_csv(directory + filename, sep = ",")
+    reviews = list(data['review'])
+    return reviews
+ 
+# turn a doc into clean tokens
+def clean_doc(reviews, stopwords):
+    t = 10**(-5)
+    
+    # remove punctuation from each token
+    table = str.maketrans('', '', string.punctuation)
+    # filter out stop words
+    stop_words = set(stopwords.words('english'))
+
+    cleaned_reviews = []
+    for review in reviews:
+        # split into tokens by white space
+        review_tokens = review.split()
+        review_tokens = [w.translate(table) for w in review_tokens]
+        # remove remaining tokens that are not alphabetic
+        review_tokens = [word.lower() for word in review_tokens if word.isalpha()]
+        review_tokens = [w for w in review_tokens if not w in stop_words]
+        # filter out short tokens
+        review_tokens = [word for word in review_tokens if len(word) > 1]
+        cleaned_reviews.append(review_tokens)
+    tokens = [token for review_tokens in cleaned_reviews for token in review_tokens]
+        
+    # subsampling of frequent words
+    word_counts = Counter(tokens)
+    total_count = len(word_counts)
+    drop_prob = {word: 1 - math.sqrt(t / (count / total_count)) for word, 
+                 count in word_counts.items()}
+    reviews_subsampling = []
+    for i in range(len(cleaned_reviews)):
+        review = cleaned_reviews[i]
+        review_tokens = [word for word in review if np.random.random() <= drop_prob[word] and word_counts[word] >= 5]
+        reviews_subsampling.append(review_tokens)
+    return reviews_subsampling
+```
+
+Clean the dataset.
+
+
+```python
+reviews = load_doc("IMDB_Dataset.csv")
+cleaned_reviews = clean_doc(reviews, stopwords)
+```
+
+Integer encode tokens.
+
+
+```python
+tokens = [token for review in cleaned_reviews for token in review]
+label_encoder = LabelEncoder()
+encoded_tokens = label_encoder.fit_transform(tokens)
+article_lengths = [len(review) for review in cleaned_reviews]
+```
+
+Split tokens by reviews.
+
+
+```python
+encoded_reviews = []
+start = 0
+for i in range(len(article_lengths)):
+    encoded_reviews.append(encoded_tokens[start:(start + article_lengths[i])])
+    start = start + article_lengths[i]
+```
+
+Generate training dataset. 
+
+
+```python
+def generate_training(encoded_reviews, window):
+    X, Y = [], []
+    for review in encoded_reviews:
+        for i in range(len(review)):
+            for j in range(max(0, i - window), min(len(review), i + window), 1):
+                if j != i:
+                    X.append(review[i])
+                    Y.append(review[j])
+    X, Y = np.array(X), np.array(Y)
+    Y = np.expand_dims(Y, axis = 1)
+    return (X, Y)
+
+X, Y = generate_training(encoded_reviews, 10)
+```
+
+## 3. Implementation
+
+The following notations and explainations are based off of this [note](https://web.stanford.edu/class/cs224n/readings/cs224n-2019-notes01-wordvecs1.pdf). Let $V$ be the vocabulary size, $h$ be word vector dimension, $V \in \mathbb{R}^{V \times h}$ be the input word matrix, and $U \in \mathbb{R}^{V \times h}$ be the output word matrix. 
+
++ Furthermore, let $u_{i}$ be the $i$-th row of $U$ and $\tilde{v} = V^{\top}x \in \mathbb{R}^{h}$, where $x \in \mathbb{R}^{V}$ is the one-hot encoding of word $w$.
++ From word vector $\tilde{v}$, generate score vector $z = U\tilde{v}$, from which a probability distribution over words can be genreated with $\hat{y}$ = softmax$(z)$.
+
+Given $T$ words, the log-likelihood to maximize for the Skip-gram model is
+
+$$
+\begin{align*}
+\mathcal{\ell}(V, U) &= \log\prod_{t = 1}^{T}P(w_{t - m}, \dots ,w_{t - 1}, w_{t + 1}, \dots ,w_{t + m} | w_{t})\\
+&= \log \prod_{t = 1}^{T} \prod_{j = 0; j \neq t}^{2m}P(w_{t - m + j}|w_{t})\\
+&= \log \prod_{t = 1}^{T}\prod_{j = 0; j \neq t}^{2m}\frac{\exp(u_{t - m + j}^{\top}\tilde{v}_{t})}{\sum_{k = 1}^{V}\exp(u_{k}^{\top}\tilde{v}_{t})}\\
+&= \sum_{t = 1}^{T}\left(\sum_{j = 0; j \neq t}^{2m}u_{t - m + j}^{\top}v_{t} - 2m\log \sum_{k = 1}^{V}\exp(u_{k}^{\top}v_{t})\right)
+\end{align*}
+$$
+
+assuming strong independence assumption between target words conditional on context word $w_{t}$. Maximizing log-likelihood can be achieved by minimizing negative log-likelihood or the average negative log-likelihood over words.
+
+$$
+\mathcal{J}(V, U) = -\frac{1}{T}\sum_{t = 1}^{T}\left(\sum_{j = 0; j \neq t}^{2m}u_{t - m + j}^{\top}v_{t} + 2m\log \sum_{k = 1}^{V}\exp(u_{k}^{\top}v_{t})\right)
+$$
+
+The computational problem with the above formulation is that the vocabulary size $V$ is typically huge. An alternative is to optimize a cost function that approximates $\mathcal{J}(V, U)$, yet is computationally more efficient via negative sampling. In negative sampling, target words are distinguished from non-target words using logistic regression. In other words, a pairing between context and target word has positive class label and a pairing between context and non-target word has negative class label. Let 
+
+$$
+\begin{align*}
+P(Y = 1 | w, c) = \sigma(u_{w}^{\top}\tilde{v}_{c}) = \frac{1}{1 + \exp(-u_{w}^{\top}\tilde{v}_{c})},
+\end{align*}
+$$
+
+where $Y$ is class label, $w$ is target word, and $c$ is context word. Let $D$ denote positive class dataset and $\tilde{D}$ denote negative class dataset. Then the cost function under the formulation is
+
+$$
+\begin{align*}
+\mathcal{J}(V, U) &= -\log\left(\prod_{(w, c) \in D}P(D = 1 | w, c)\prod_{(w, c) \in \tilde{D}}P(D = 0|w, c)\right)\\
+&= -\sum_{(w, c) \in D}\log\left(\frac{1}{1 + \exp(-u_{w}^{\top}v_{c})}\right) - \sum_{(w, c) \in \tilde{D}}\log\left(\frac{1}{1 + \exp(u_{w}^{\top}v_{c})}\right)
+\end{align*}
+$$
+
+In practice, it may not be necessary to construct entire $\tilde{D}$ for decent performance. Thus, the practical implementation minimizes the following cost function
+
+$$
+\begin{align*}
+\mathcal{J}(V, U) = -\frac{1}{T}\sum_{t = 1}^{T}\left(\sum_{j = 0; j \neq t}^{2m}\sigma(u_{t - m + j}^{\top}\tilde{v}_{t}) - \sum_{k = 1}^{K}\log \sigma(-\tilde{u}_{k}^{\top}\tilde{v}_{t})\right)
+\end{align*}
+$$
+
+where $$\tilde{u}_{k}$$ corresponds to non-target words of $$w_{t}$$. Negative sampling refers to the sampling of $K$ word pairs of negative class, where $K = 10$ is chosen. 
+
+In Tensorflow 2.1.0., the negative sampling defined above is assumed to be implemented by $\texttt{tf.compat.v1.nn.sampled_softmax_loss()}$. Note that softmax with 2 classes is equivalent to logistic regression
+
+$$
+\begin{align*}
+P(Y = 1, z_{1}, z_{2}) &= \frac{e^{z_{1}}}{e^{z_1} + e^{z_2}}\\
+&= \frac{1}{e^{z_2 - z_1} + 1}\\
+&= \frac{1}{e^{-z} + 1}
+\end{align*}
+$$
+
+where $z = z_1 - z_2$. A few implementation notes:
+
++ Input word matrix will be initialized with values drawn from uniform distribution in the range [-1, 1).
++ Output word matrix will be initialized with values drawn from a normal distribution mean -1 and standard deviation 1. Values whose magnitude is more than 2 standard deviations from the mean are dropped and re-picked.
+
+
+```python
+import tensorflow as tf
+
+class word2vec(object):
+    
+    def __init__(self, sess, vocab_size, n_embedding, batch_size = 512):
+        self.sess = sess
+        self.V = vocab_size
+        self.h = n_embedding
+        self.batch_size = batch_size
+        self.__build_computational_graph__()
+        self.__define_train_ops__()
+        self.sess.run(tf.compat.v1.global_variables_initializer())
+        self.checkpoint_dir = "checkpoints/"
+        
+    def __build_computational_graph__(self):
+        self.input_ph = tf.compat.v1.placeholder(dtype=tf.int64, shape=[None])
+        self.output_ph = tf.compat.v1.placeholder(dtype=tf.int64, shape=[None, 1])
+        
+        embedding = tf.Variable(tf.random.uniform((self.V, self.h), -1, 1))
+        self.embed = tf.nn.embedding_lookup(embedding, self.input_ph)
+
+        self.softmax_w = tf.Variable(tf.random.truncated_normal((self.V, self.h), -1, 1))
+        self.softmax_b = tf.Variable(tf.zeros(self.V), name="softmax_bias")
+        
+        self.train_loss = tf.reduce_mean(tf.compat.v1.nn.sampled_softmax_loss(weights=self.softmax_w,
+                                                                              biases=self.softmax_b,
+                                                                              labels=self.output_ph,
+                                                                              inputs=self.embed,
+                                                                              num_sampled = 10,
+                                                                              num_classes = self.V))
+        
+    def __define_train_ops__(self):
+        self.opt = tf.compat.v1.train.AdamOptimizer().minimize(self.train_loss)
+        logits = tf.matmul(self.embed, tf.transpose(self.softmax_w))
+        logits = tf.nn.bias_add(logits, self.softmax_b)
+        labels_one_hot = tf.one_hot(self.output_ph, self.V)
+        self.eval_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=labels_one_hot, 
+                                                                                logits=logits))
+        
+    def train(self, X, Y, verbose = True, epochs = 10):
+        saver = tf.compat.v1.train.Saver()
+        
+        for epoch in range(epochs):
+            print("epoch {0} / {1}".format(epoch, epochs))
+            for i in range(math.ceil(len(X) / self.batch_size)):
+                Xbatch = X[i * self.batch_size:(i + 1) * self.batch_size]
+                Ybatch = Y[i * self.batch_size:(i + 1) * self.batch_size]
+                _, loss_batch = self.sess.run([self.opt, self.train_loss], 
+                                              feed_dict={self.input_ph: Xbatch, self.output_ph: Ybatch})
+                if i % 1000 == 0:
+                    softmax_loss = self.sess.run(self.eval_loss, feed_dict={self.input_ph: Xbatch, 
+                                                                            self.output_ph: Ybatch})
+                    print('sampled softmax loss: {:.3f} | softmax loss: {:.3f}'.format(loss_batch, 
+                                                                                       softmax_loss))
+            
+            if epoch % 5 == 0:
+                saver.save(self.sess, save_path='models/word2vec.ckpt')
+            
+            shuffle_idx = np.random.permutation(len(X))
+            X, Y = X[shuffle_idx], Y[shuffle_idx]
+    
+    def get_embedding(self, X):
+        return self.sess.run(self.embed, feed_dict = {self.input_ph: X})
+```
+
+Initialize graph, session, and model.
+
+
+```python
+tf.compat.v1.reset_default_graph()
+tf.compat.v1.disable_eager_execution()
+sess = tf.compat.v1.Session()
+V = len(np.unique(X))
+
+model = word2vec(sess, V, n_embedding=300, batch_size=2048)
+```
+
+Training will print the following progress messages. In addition to printing the training loss based on softmax, we also print the original loss, which the training loss approximates.
+
+
+```python
+model.train(X, Y, epochs = 5)
+```
+
+Example output.
+
+```
+epoch 0 / 10
+sampled softmax loss: 11.395 | softmax loss: 37.042
+sampled softmax loss: 10.140 | softmax loss: 35.712
+sampled softmax loss: 10.435 | softmax loss: 34.629
+sampled softmax loss: 10.022 | softmax loss: 32.538
+sampled softmax loss: 7.056 | softmax loss: 28.374
+sampled softmax loss: 3.617 | softmax loss: 26.147
+sampled softmax loss: 5.020 | softmax loss: 26.835
+sampled softmax loss: 3.111 | softmax loss: 28.299
+sampled softmax loss: 3.713 | softmax loss: 29.446
+sampled softmax loss: 4.481 | softmax loss: 29.410
+sampled softmax loss: 3.502 | softmax loss: 29.332
+sampled softmax loss: 0.908 | softmax loss: 21.718
+sampled softmax loss: 3.204 | softmax loss: 28.391
+sampled softmax loss: 1.376 | softmax loss: 22.891
+sampled softmax loss: 3.436 | softmax loss: 23.964
+sampled softmax loss: 1.523 | softmax loss: 21.603
+sampled softmax loss: 2.464 | softmax loss: 21.597
+sampled softmax loss: 1.090 | softmax loss: 17.275
+```
+
+## 4. Word Vector Evaluation
+
+The quality of the word vectors are assessed with analogical reasoning tasks introduced by Mikolov _et_ _at_.[2]. The reasoning task is successful by satisfying an equation such as the following
+
+```
+vec(queen) - vec(woman) = vec(king) - vec(man)
+```
+
+where `vec(queen)` means the word vector of "queen". We evaluate performance of this task by testing whether
+
+```
+vec(queen) - vec(woman) + vec(man) = ?
+```
+
+yields `vec(king)` as the closest vector out of all word vectors in terms of cosine similarity. Obtain word vectors for all words.
+
+
+```python
+tf.compat.v1.reset_default_graph()
+sess = tf.compat.v1.Session()
+
+model = word2vec(sess, V, n_embedding=300, batch_size=2048)
+saver = tf.compat.v1.train.Saver()
+saver.restore(sess, 'models/word2vec.ckpt')
+
+unique_tokens = np.unique(X)
+word_vectors = model.get_embedding(unique_tokens)
+```
+
+    INFO:tensorflow:Restoring parameters from models/word2vec.ckpt
+
+
+    INFO:tensorflow:Restoring parameters from models/word2vec.ckpt
+
+
+Functions for analogical reasoning tasks.
+
+
+```python
+import heapq
+
+def cosine_similarity(x, y):
+    return x.dot(y) / (np.linalg.norm(x) * np.linalg.norm(y))
+
+def closest_k_vectors(word_vectors, words, label_encoder, model, k = 10):
+    encoded_words = label_encoder.transform(words)
+    embeddings = model.get_embedding(encoded_words)
+    vector = embeddings[0] - embeddings[1] + embeddings[2]
+    
+    heap = []
+    # get closest k vectors 
+    for i in range(len(word_vectors)):
+        if i not in encoded_words:
+            heapq.heappush(heap, (cosine_similarity(word_vectors[i], vector), i))
+            if len(heap) > k:
+                heapq.heappop(heap)
+    
+    heap.sort(reverse = True)
+    return list(label_encoder.inverse_transform([w for s, w in heap]))
+```
+
+In this notebook, we illustrate that our word vectors can satisfy the following relationships
+
+1. queen - woman = king - man
+2. brother - boy = sister - girl
+3. woman - man = uncle - aunt
+
+
+
+```python
+wordgroups = [["queen", "woman", "man"], ["brother", "boy", "girl"],
+              ["woman", "man", "uncle"]]
+
+for group in wordgroups:
+    print("{0} - {1} + {2} = ?".format(group[0], group[1], group[2]))
+    print("Top 10 closest words in descending order: ", 
+          closest_k_vectors(word_vectors, group, label_encoder, model, k = 10))
+    print(" ")
+```
+
+    queen - woman + man = ?
+    Top 10 closest words in descending order:  ['last', 'king', 'powerful', 'almost', 'title', 'wars', 'one', 'war', 'back', 'better']
+     
+    brother - boy + girl = ?
+    Top 10 closest words in descending order:  ['sister', 'shes', 'really', 'also', 'married', 'woman', 'playing', 'things', 'get', 'named']
+     
+    woman - man + uncle = ?
+    Top 10 closest words in descending order:  ['wife', 'played', 'family', 'old', 'young', 'aunt', 'falls', 'mother', 'lady', 'married']
+     
+
+
+However, our word vectors fail at satisfying other relationships presented by Mikolov _et_ _at_.[2]. Underperformance could be due to size of training dataset, type of training dataset, and training time.
+
+## References
+
+1. Mikolov, Tomas, et al. "Distributed representations of words and phrases and their compositionality." Advances in neural information processing systems. 2013.
+2. Mikolov, Tomas, et al. "Efficient estimation of word representations in vector space." arXiv preprint arXiv:1301.3781 (2013).
