@@ -483,6 +483,7 @@ for epoch in range(maxEpochs):
                 nonIncreaseCounter += 1
             else:
                 nonIncreaseCounter = 0
+            prevValAccuracy = valAccuracy
             
             if nonIncreaseCounter > earlyStopThreshold:
                 earlyStop = True
