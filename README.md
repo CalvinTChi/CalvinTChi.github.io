@@ -6,12 +6,14 @@ Personal website. Basic steps to add a new blog post.
 2. Copy the markdown file inside output folder into `./_posts/`, renaming file following the convention `[YYYY]-[MM]-[DD]-[TITLE].markdown`.
 3. Prepend a header of the following format in markdown file
 
-> ---
-> layout: post
-> title:  "[TITLE]"
-> date:   [YYYY]-[MM]-[DD]
-> categories: [CATEGORY]
-> ---
+```
+---
+layout: post
+title:  "[TITLE]"
+date:   [YYYY]-[MM]-[DD]
+categories: [CATEGORY]
+---
+```
 
 4. The image outputs from Jupyter notebook will be saved in output folder from step 1. Move those images to `./assets/img/[TITLE]_files/[IMAGE_NAME].png`. In the markdown file, reference each image as
 
