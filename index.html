@@ -83,15 +83,15 @@
 				</div>
 			</div>
 			<div id = "about-text">
-				<p> I am an applied scientist at Amazon Advertising.
+				<p> I am an applied scientist at Amazon Advertising, currently working on semi-supervised learning and multitask learning for machine learning systems at scale.
 
 				<br>
 
-				<br> I completed my Ph.D. in Computational Biology at UC Berkeley, advised by Haiyan Huang and Lisa Barcellos, and supported by the NSF Graduate Research Fellowship. My graduate work was focused on applying and developing statistical and computational tools for epidemiological and pharmacogenomic studies, which is summarized by this <a target="_blank" style="color:#3399ff" href="http://calvintchi.github.io/pdf/dissertation.pdf">dissertation</a>.
+				<br> I completed my Ph.D. in Computational Biology at UC Berkeley in 2020, advised by Haiyan Huang and Lisa Barcellos, and supported by the NSF Graduate Research Fellowship. My graduate work was at the intersection of applied machine learning and epidemiology/pharmacogenomics, which is summarized by this <a target="_blank" style="color:#3399ff" href="http://calvintchi.github.io/pdf/dissertation.pdf">dissertation</a>.
 
 				<br>
 
-				<br>I have a passion for optimization, statistics, machine learning, deep learning, and relevant engineering principles, and their applications such as computer vision, natural language processing, reinforcement learning, and biomedicine. I enjoy learning about math and theoretical physics recreationally.</p>
+				<br>I have a passion for the foundational topics of optimization, statistics, and machine learning; application areas such as vision, language, and biomedicine; and frameworks such as reinforcement learning and metalearning.</p>
 
 				<p style="width:100%"><br><i>"Nature cannot be fooled."</i> - Richard Feynman</p>
 			</div>
@@ -160,6 +160,30 @@
 	<section id = "research-section" class = "white-section">
 		<div class = "section-title">Publications</div>
 		<div class = "work">
+			<div class = "projects-panel">
+				<div class = "work-photo">
+					<img src="assets/img/research2.png" height="240px">
+				</div>
+				<div class = "work-text">
+					<h2>Bipartite graph-based approach for clustering of cell lines by gene expression-drug response associations</h2>
+					<p><b>Calvin Chi</b>, Yuting Ye, Bin Chen, Haiyan Huang</p>
+					<p>Bioinformatics 2021</p>
+					<br>
+					<br>
+					<div class = "button-panel">
+						<div type = "button" class = "button-abstract">Abstract
+							<span class = "abstract-bubble">
+								In pharmacogenomic studies, the biological context of cell lines influences the predictive ability of drug-response models and the discovery of biomarkers. Thus, similar cell lines are often studied together based on prior knowledge of biological annotations. However, this selection approach is not scalable with the number of annotations, and the relationship between gene-drug association patterns and biological context may not be obvious. We present a procedure to compare cell lines based on their gene-drug association patterns. Starting with a grouping of cell lines from biological annotation, we model gene-drug association patterns for each group as a bipartite graph between genes and drugs. This is accomplished by applying sparse canonical correlation analysis (SCCA) to extract the gene-drug associations, and using the canonical vectors to construct the edge weights. Then, we introduce a nuclear norm-based dissimilarity measure to compare the bipartite graphs. Accompanying our procedure is a permutation test to evaluate the significance of similarity of cell line groups in terms of gene-drug associations. In the pharmacogenomics datasets CTRP2, GDSC2, and CCLE, hierarchical clustering of carcinoma groups based on this dissimilarity measure uniquely reveals clustering patterns driven by carcinoma subtype rather than primary site. Next, we show that the top associated drugs or genes from SCCA can be used to characterize the clustering patterns of haematopoietic and lymphoid malignancies. Finally, we confirm by simulation that when drug responses are linearly-dependent on expression, our approach is the only one that can effectively infer the true hierarchy compared to existing approaches.
+								<div class = "middle-dark-tooltip"></div>
+								<div class = "middle-light-tooltip"></div>
+							</span>
+						</div>
+						<a class="button" href = "https://academic.oup.com/bioinformatics/advance-article-abstract/doi/10.1093/bioinformatics/btab143/6158036?redirectedFrom=fulltext" target = "_blank">Paper</a>
+						<a class = "button" href = "https://CRAN.R-project.org/package=hierBipartite" target = "_blank">Software</a>
+						<a class = "button" href = "https://github.com/CalvinTChi/hierBipartite" target = "_blank">Code</a>
+					</div>
+				</div>
+			</div>
 			<div class = "projects-panel">
 				<div class = "work-photo">
 					<img src="assets/img/research1.png" height="225px">
@@ -286,7 +310,7 @@
 	<section id = "resources-section" class = "white-section">
 		<div class = "section-title">Resources</div>
 		<div id="resources-intro">
-			<p> Over my years in graduate school, I have found it helpful to organize my lessons into notes, which include mathematical derivations and notebooks re-implementing well-known machine learning algorithms. Common reasons for writing notes include (1) to compare different perspectives and explanations, (2) to introduce a topic in a more intuitive manner, and (3) to provide more detailed explanations. You are welcome to email me regarding feedback. </p>
+			<p>During graduate school, I found it helpful to actively take notes on what I learned, in the same spirit as the Feynman technique. These notes include mathematical derivations and re-implementation of well-known algorithms, and are useful when I find existing resources inadequate in providing a good understanding. I continue to write notes as a life-long learner, and am posting these notes as a way to contribute back to the community. Feedback and corrections via email welcome.</p>
 		</div>
 		<div class = "resources-panel">
 			<h2>Classical Machine Learning</h2>
