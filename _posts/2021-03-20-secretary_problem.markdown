@@ -69,7 +69,7 @@ Take $n \rightarrow \infty$ and $r \rightarrow \infty$ and apply the [Euler–Ma
 $$
 \begin{align*}
 \lim_{n, r \rightarrow \infty}&\frac{1}{n} + (x + O(n))\left(\sum_{i = 1}^{n}\frac{1}{i} - \log(n - 1) - \left(\sum_{i = 1}^{r - 1}\frac{1}{i} - \log(r - 1)\right)\right) + (x + O(n))\log\frac{1 - 1/n}{x + O(n)}\\
-&= x(\gamma - \gamma) - x\log x.
+=& x(\gamma - \gamma) - x\log x.
 \end{align*}
 $$
 
