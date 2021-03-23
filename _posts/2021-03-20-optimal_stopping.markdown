@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "The Secretary Problem"
+title:  "Optimal Stopping"
 date:   2021-03-20
 categories: algorithms
 ---
