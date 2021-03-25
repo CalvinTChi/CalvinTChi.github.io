@@ -88,6 +88,8 @@ which is optimal because $d^{2} P(x) / d x^{2} = -\frac{1}{x} < 0$ for $x \in [0
 
 How does a success probability $P(r)$ translate in a real-life application? After all, after an interview loop ends, the only possible outcomes are failure or success in hiring the best candidate. First notice that $P(r) = \mathbb{E}[\mathbb{1}(\text{best candidate is hired})]$, which is an expectation. The weak [law of large numbers](https://en.wikipedia.org/wiki/Law_of_large_numbers) states that as the number of trials $m$ approaches infinity, the average approaches the expected value. More technically, we have the following convergence in probability
 
+$$\bar{X} \stackrel{P}{\rightarrow} \mu$$
+
 where $\bar{X} = \frac{1}{n}\sum_{i = 1}^{n}x_{i}$ and $\mu = \mathbb{E}[X]$. Thus, what a success probability guarantee really tells us is that if the set of $n$ interviews is repeatedly multiple times according to the optimial stopping algorithm, the proportion of times the best candidate is selected is around 37.79%. 
 
 Let us study this via a simulation generating a random sequence of rankable candidates. We have control over two parameters:
