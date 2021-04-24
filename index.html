@@ -53,7 +53,8 @@
           			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"Grand Canyon Village", latitude:36.0544, longitude:-112.1401},
           			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"Phoenix", latitude:33.4484, longitude:-112.0740},
           			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"Portland", latitude:45.5051, longitude:-122.6750},
-          			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"Houston", latitude:29.7604, longitude:-95.3584} 
+          			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"Houston", latitude:29.7604, longitude:-95.3584},
+          			{svgPath:targetSVG, zoomLevel:5, scale:0.5, title:"Las Vegas", latitude:36.1146, longitude:-115.1728}
           			]
             };
 	    	map.dataProvider = dataProvider;
@@ -83,7 +84,7 @@
 				</div>
 			</div>
 			<div id = "about-text">
-				<p> I am an applied scientist at Amazon Advertising, currently working on semi-supervised learning and multitask learning for machine learning systems at scale.
+				<p> I am an applied scientist at Amazon Advertising, working on semi-supervised and multitask learning for machine learning systems.
 
 				<br>
 
@@ -91,7 +92,7 @@
 
 				<br>
 
-				<br>I have a passion for the foundational topics of optimization, statistics, and machine learning; application areas such as vision, language, and biomedicine; and frameworks such as reinforcement learning and metalearning.</p>
+				<br>My academic interests include the foundational topics of optimization, statistics, and machine learning; application areas such as vision, language, and biomedicine; and frameworks such as reinforcement learning and metalearning.</p>
 
 				<p style="width:100%"><br><i>"Nature cannot be fooled."</i> - Richard Feynman</p>
 			</div>
@@ -110,7 +111,7 @@
 		<div id="biography">
 			<div class="section-title">Biography</div>
 			<div id="biography-text">
-				<p> I grew up in Taichung, Taiwan as a third culture kid, and always had an interest in STEM. Because my high school emphasized liberal arts education, I did not know about engineering as a career until my senior year. I believed medicine to be the most practical application of STEM, and committed my college career towards earning medical school admission. It was not until the interviews when I deeply realized medicine was the wrong path, leading me to make my most risky career move by turning down my admissions offer. I later found the convex hull of math, computer science, and statistics to be a better match for my passions, which led me to pursue a Ph.D. in Computational Biology, and I have never looked back since then. If you find my <a target="_blank" style="color:#3399ff" href="http://www.ratemyprofessors.com/ShowRatings.jsp?tid=1749628">rate my professors profile</a>, know that it is a joke started by classmates back in college organic chemistry. The map indicates cities I have been to.</p>
+				<p> I grew up in Taichung, Taiwan as a third culture kid, and always had an interest in STEM. Due to my high school's emphasis on the liberal arts, I did not know about engineering as a career until my senior year. Since I thought medicine to be the most practical application of STEM, I committed my college career towards earning medical school admission. It was not until the interviews when I deeply realized medicine to be the wrong path, leading me to make my most risky career move by turning down my admissions offer. I later pursued a Ph.D. in Computational Biology to connect with statistics, computer science, and math, and finally realigned my direction with my passions. If you happen to find my <a target="_blank" style="color:#3399ff" href="http://www.ratemyprofessors.com/ShowRatings.jsp?tid=1749628">rate my professors profile</a>, it is a joke started by college classmates back in organic chemistry. The map indicates cities I have been to.</p>
 			</div>
 			<div id="mapdiv"></div>
 		</div>
@@ -160,6 +161,28 @@
 	<section id = "research-section" class = "white-section">
 		<div class = "section-title">Publications</div>
 		<div class = "work">
+			<div class = "projects-panel">
+				<div class = "work-photo">
+					<img src="assets/img/research3.png" height="240px">
+				</div>
+				<div class = "work-text">
+					<h2>Hypomethylation mediates genetic association with the major histocompatibility complex genes in Sjögren's syndrome</h2>
+					<p><b>Calvin Chi</b>, Kimberly E. Taylor, Hong Quach, Diana Quach, Lindsey A. Criswell, Lisa F. Barcellos</p>
+					<p>PLoS ONE 16(4) 2021</p>
+					<br>
+					<br>
+					<div class = "button-panel">
+						<div type = "button" class = "button-abstract">Abstract
+							<span class = "abstract-bubble">
+								Differential methylation of immune genes has been a consistent theme observed in Sjögren’s syndrome (SS) in CD4+ T cells, CD19+ B cells, whole blood, and labial salivary glands (LSGs). Multiple studies have found associations supporting genetic control of DNA methylation in SS, which in the absence of reverse causation, has positive implications for the potential of epigenetic therapy. However, a formal study of the causal relationship between genetic variation, DNA methylation, and disease status is lacking. We performed a causal mediation analysis of DNA methylation as a mediator of nearby genetic association with SS using LSGs and genotype data collected from 131 female members of the Sjögren’s International Collaborative Clinical Alliance registry, comprising of 64 SS cases and 67 non-cases. Bumphunter was used to first identify differentially-methylated regions (DMRs), then the causal inference test (CIT) was applied to identify DMRs mediating the association of nearby methylation quantitative trait loci (MeQTL) with SS. Bumphunter discovered 215 DMRs, with the majority located in the major histocompatibility complex (MHC) on chromosome 6p21.3. Consistent with previous findings, regions hypomethylated in SS cases were enriched for gene sets associated with immune processes. Using the CIT, we observed a total of 19 DMR-MeQTL pairs that exhibited strong evidence for a causal mediation relationship. Close to half of these DMRs reside in the MHC and their corresponding meQTLs are in the region spanning the HLA-DQA1, HLA-DQB1, and HLA-DQA2 loci. The risk of SS conferred by these corresponding MeQTLs in the MHC was further substantiated by previous genome-wide association study results, with modest evidence for independent effects. By validating the presence of causal mediation, our findings suggest both genetic and epigenetic factors contribute to disease susceptibility, and inform the development of targeted epigenetic modification as a therapeutic approach for SS.
+								<div class = "middle-dark-tooltip"></div>
+								<div class = "middle-light-tooltip"></div>
+							</span>
+						</div>
+						<a class="button" href = "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0248429" target = "_blank">Paper</a>
+					</div>
+				</div>
+			</div>
 			<div class = "projects-panel">
 				<div class = "work-photo">
 					<img src="assets/img/research2.png" height="240px">
@@ -310,7 +333,7 @@
 	<section id = "resources-section" class = "white-section">
 		<div class = "section-title">Resources</div>
 		<div id="resources-intro">
-			<p>During graduate school, I found it helpful to actively take notes on what I learned, in the same spirit as the Feynman technique. These notes include mathematical derivations and re-implementation of well-known algorithms, and are useful when I find existing resources inadequate in providing a good understanding. I continue to write notes as a life-long learner, and am posting these notes as a way to contribute back to the community. Feedback and corrections via email welcome.</p>
+			<p>During graduate school, I found it helpful to actively take notes on what I learned, in the same spirit as the Feynman technique. These notes include mathematical derivations and re-implementation of well-known algorithms, and are useful when I find existing resources inadequate in providing a good understanding. I continue to write notes as a life-long learner, and am posting these notes in case they are helpful. Feedback and corrections via email welcome.</p>
 		</div>
 		<div class = "resources-panel">
 			<h2>Classical Machine Learning</h2>
