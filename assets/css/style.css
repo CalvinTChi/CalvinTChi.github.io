@@ -4,6 +4,10 @@
 	font-family: 'Roboto Condensed', sans-serif;
 }
 
+img {
+  max-width: 100%;
+}
+
 nav ul {
     display: flex;
     flex-direction: row;
