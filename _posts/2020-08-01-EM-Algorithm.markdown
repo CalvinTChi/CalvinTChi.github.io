@@ -7,7 +7,6 @@ categories: statistics
 
 ## 1. Motivation
 
-
 The standard maximum likelihood estimation (MLE) problem solves for
 
 $$\theta^{*} = \arg \max_{\theta}\ell(\theta),$$

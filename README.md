@@ -21,7 +21,7 @@ categories: [CATEGORY]
 ![png]({{site.baseurl}}/assets/img/[TITLE]_files/[IMAGE_NAME].png)
 ```
 
-5. Run `bundle exec jekyll serve` and visit server address returned by the command in your local browser. This creates the necessary files in `./_site/` (e.g. html file of markdown) so that GitHub can host the blog post as a webpage.
+5. Run `bundle exec jekyll build --incremental` and visit server address returned by the command in your local browser. This creates the necessary files in `./_site/` (e.g. html file of markdown) so that GitHub can host the blog post as a webpage.
 
 6. Run `./publish.sh` to push changes to GitHub. Now visit link of website and the new blog post should be at `[BASE_URL]/[CATEGORY]/[YYYY]/[MM]/[DD]/[TITLE].html`. 
 
