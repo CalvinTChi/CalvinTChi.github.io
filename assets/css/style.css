@@ -87,7 +87,7 @@ p a:hover {
 body {
 	font-family: 'Open Sans', sans-serif;
 	/* to prevent horizontal scroll bar */
-	overflow-x:hidden;
+	overflow-x: hidden;
 }
 
 .white-section {
