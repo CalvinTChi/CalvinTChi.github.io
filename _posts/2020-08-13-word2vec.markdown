@@ -9,7 +9,7 @@ categories: NLP
 
 This notebook is largely based on the paper [Distributed Representations of Words and Phrases and their Compositionality](https://papers.nips.cc/paper/5021-distributed-representations-of-words-and-phrases-and-their-compositionality.pdf) [1]. A few high level notes and tips from the paper include:
 
-+ The Skip-gram architecture in Figure 1 of Mikolov _et_ _at_. actually only involves training of two matrices - the input and output matrices. The Skip-gram architecture does not involve a separate output matrix for each output context word. Rather, Skip-Gram model dictates how an input word is paired output words that are in its context.
++ The Skip-gram architecture in Figure 1 of Mikolov _et_ _at_. actually only involves training of two matrices - the input and output matrices. The Skip-gram architecture does not involve a separate output matrix for each output context word. 
 + Since the Skip-gram model fits a one-to-many mapping of words, the point is not to get any particular mapping between a pair of words correct, but rather to use this fitting procedure to fit a good input word matrix whose columns (or rows) are vector representations of words that capture syntactic or semantic word relationships.
 + The Skip-gram model assumes distributional hypothesis, which assumes that a word's syntactic or semantic meaning is correlated with the type of words it is surrounded by.
 + Larger context window $\pm m$ results in more training examples and thus can lead to a higher accuracy, at the expense of the training time.
@@ -148,16 +148,16 @@ Given $T$ words, the log-likelihood to maximize for the Skip-gram model is
 $$
 \begin{align*}
 \mathcal{\ell}(V, U) &= \log\prod_{t = 1}^{T}P(w_{t - m}, \dots ,w_{t - 1}, w_{t + 1}, \dots ,w_{t + m} | w_{t})\\
-&= \log \prod_{t = 1}^{T} \prod_{j = 0; j \neq t}^{2m}P(w_{t - m + j}|w_{t})\\
-&= \log \prod_{t = 1}^{T}\prod_{j = 0; j \neq t}^{2m}\frac{\exp(u_{t - m + j}^{\top}\tilde{v}_{t})}{\sum_{k = 1}^{V}\exp(u_{k}^{\top}\tilde{v}_{t})}\\
-&= \sum_{t = 1}^{T}\left(\sum_{j = 0; j \neq t}^{2m}u_{t - m + j}^{\top}v_{t} - 2m\log \sum_{k = 1}^{V}\exp(u_{k}^{\top}v_{t})\right)
+&= \log \prod_{t = 1}^{T} \prod_{j = 0; j \neq m}^{2m}P(w_{t - m + j}|w_{t})\\
+&= \log \prod_{t = 1}^{T}\prod_{j = 0; j \neq m}^{2m}\frac{\exp(u_{t - m + j}^{\top}\tilde{v}_{t})}{\sum_{k = 1}^{V}\exp(u_{k}^{\top}\tilde{v}_{t})}\\
+&= \sum_{t = 1}^{T}\left(\sum_{j = 0; j \neq m}^{2m}u_{t - m + j}^{\top}v_{t} - 2m\log \sum_{k = 1}^{V}\exp(u_{k}^{\top}v_{t})\right)
 \end{align*}
 $$
 
 assuming strong independence assumption between target words conditional on context word $w_{t}$. Maximizing log-likelihood can be achieved by minimizing negative log-likelihood or the average negative log-likelihood over words.
 
 $$
-\mathcal{J}(V, U) = -\frac{1}{T}\sum_{t = 1}^{T}\left(\sum_{j = 0; j \neq t}^{2m}u_{t - m + j}^{\top}v_{t} + 2m\log \sum_{k = 1}^{V}\exp(u_{k}^{\top}v_{t})\right)
+\mathcal{J}(V, U) = -\frac{1}{T}\sum_{t = 1}^{T}\left(\sum_{j = 0; j \neq m}^{2m}u_{t - m + j}^{\top}v_{t} + 2m\log \sum_{k = 1}^{V}\exp(u_{k}^{\top}v_{t})\right)
 $$
 
 The computational problem with the above formulation is that the vocabulary size $V$ is typically huge. An alternative is to optimize a cost function that approximates $\mathcal{J}(V, U)$, yet is computationally more efficient via negative sampling. In negative sampling, target words are distinguished from non-target words using logistic regression. In other words, a pairing between context and target word has positive class label and a pairing between context and non-target word has negative class label. Let 
@@ -181,7 +181,7 @@ In practice, it may not be necessary to construct entire $\tilde{D}$ for decent 
 
 $$
 \begin{align*}
-\mathcal{J}(V, U) = -\frac{1}{T}\sum_{t = 1}^{T}\left(\sum_{j = 0; j \neq t}^{2m}\sigma(u_{t - m + j}^{\top}\tilde{v}_{t}) - \sum_{k = 1}^{K}\log \sigma(-\tilde{u}_{k}^{\top}\tilde{v}_{t})\right)
+\mathcal{J}(V, U) = -\frac{1}{T}\sum_{t = 1}^{T}\left(\sum_{j = 0; j \neq m}^{2m}\sigma(u_{t - m + j}^{\top}\tilde{v}_{t}) - \sum_{k = 1}^{K}\log \sigma(-\tilde{u}_{k}^{\top}\tilde{v}_{t})\right)
 \end{align*}
 $$
 
